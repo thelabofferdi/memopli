@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import * as api from "../api.js";
 import Costs from "../components/Costs.jsx";
+import Pli from "../components/Pli.jsx";
+import Mascot from "../components/Mascot.jsx";
 import Draft from "../components/Draft.jsx";
 import Readiness from "../components/Readiness.jsx";
 import Requirements from "../components/Requirements.jsx";
@@ -12,7 +14,7 @@ import { pieceStatus } from "../format.js";
 // verdict, rédaction. Les statuts viennent du serveur ; l'écran ne fait que
 // les afficher (le code calcule, l'IA lit).
 
-export default function Dossier({ tenderId, pieces, busy, run }) {
+export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
   const [tender, setTender] = useState(null);
   const [missing, setMissing] = useState(false);
   const [reqs, setReqs] = useState([]);
@@ -22,6 +24,9 @@ export default function Dossier({ tenderId, pieces, busy, run }) {
   const [openDraftId, setOpenDraftId] = useState("");
   const [cost, setCost] = useState(null);
   const [piecesSeen, setPiecesSeen] = useState(pieces);
+  // #/app/dossiers/<id>?pli=1 ouvre directement l'assistant
+  const [pliOpen, setPliOpen] = useState(() => /[?&]pli=1/.test(window.location.hash));
+  const closePli = useCallback(() => setPliOpen(false), []);
 
   const refreshCost = useCallback(async () => {
     try {
@@ -196,6 +201,14 @@ export default function Dossier({ tenderId, pieces, busy, run }) {
       )}
 
       <Costs cost={cost} />
+
+      <button type="button" className="pli-fab" onClick={() => setPliOpen(true)} aria-haspopup="dialog">
+        <span className="pli-fab-av" aria-hidden="true">
+          <Mascot size={36} animated={false} />
+        </span>
+        Demander à Pli
+      </button>
+      <Pli orgId={orgId} tenderId={tenderId} open={pliOpen} onClose={closePli} />
     </>
   );
 }

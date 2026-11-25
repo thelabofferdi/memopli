@@ -9,6 +9,7 @@ import { navigate } from "../router.js";
 import Account from "./Account.jsx";
 import Dossier from "./Dossier.jsx";
 import Dossiers from "./Dossiers.jsx";
+import Search from "./Search.jsx";
 
 // Espace client : barre latérale (dossiers, documents, entreprise, compte) et
 // une page par entrée. Les données partagées (compte, entreprise, documents)
@@ -16,6 +17,7 @@ import Dossiers from "./Dossiers.jsx";
 
 const NAV = [
   { to: "/app", match: (p) => p === "/app" || p.startsWith("/app/dossiers"), label: "Mes dossiers", icon: "folder" },
+  { to: "/app/recherche", match: (p) => p.startsWith("/app/recherche"), label: "Rechercher", icon: "search" },
   { to: "/app/documents", match: (p) => p.startsWith("/app/documents"), label: "Mes documents", icon: "files" },
   { to: "/app/entreprise", match: (p) => p.startsWith("/app/entreprise"), label: "Mon entreprise", icon: "building" },
 ];
@@ -43,9 +45,24 @@ function Icon({ name }) {
           <path {...p} d="M5 20c1-3.6 3.7-5.5 7-5.5s6 1.9 7 5.5" />
         </>
       )}
+      {name === "search" && (
+        <>
+          <circle {...p} cx="11" cy="11" r="6.5" />
+          <path {...p} d="m16 16 4.5 4.5" />
+        </>
+      )}
       {name === "menu" && <path {...p} d="M4 7h16M4 12h16M4 17h16" />}
     </svg>
   );
+}
+
+// la recherche a besoin des titres des dossiers pour ses liens et son filtre
+function SearchPage({ org }) {
+  const [tenders, setTenders] = useState([]);
+  useEffect(() => {
+    api.listTenders(org.id).then(setTenders).catch(() => setTenders([]));
+  }, [org.id]);
+  return <Search org={org} tenders={tenders} />;
 }
 
 export default function Workspace({ path }) {
@@ -196,6 +213,7 @@ export default function Workspace({ path }) {
       <Dossier
         key={route}
         tenderId={decodeURIComponent(route.slice("/app/dossiers/".length))}
+        orgId={org.id}
         pieces={pieces}
         busy={busy}
         run={run}
@@ -232,6 +250,8 @@ export default function Workspace({ path }) {
         <Company org={org} busy={busy} onSave={saveCompany} startEditing={Boolean(query.get("bienvenue"))} />
       </>
     );
+  } else if (route.startsWith("/app/recherche")) {
+    page = <SearchPage org={org} />;
   } else if (route.startsWith("/app/compte")) {
     page = <Account user={user} org={org} onSignOut={signOut} />;
   } else {

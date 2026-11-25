@@ -142,3 +142,24 @@ export const listDrafts = (id) =>
 // ------------------------------------------------------------------ coût
 
 export const tenderCost = (id) => call(`/api/tenders/${encodeURIComponent(id)}/cost`);
+
+// ------------------------------------------------- recherche et assistant
+
+export const documents = (orgId, tenderId) =>
+  call(
+    `/api/documents?org_id=${encodeURIComponent(orgId)}${tenderId ? `&tender_id=${encodeURIComponent(tenderId)}` : ""}`,
+  );
+
+export const indexTender = (id) =>
+  call(`/api/tenders/${encodeURIComponent(id)}/index`, { method: "POST" });
+
+export const search = (fields) => call("/api/search", json("POST", fields));
+
+export const agentIdentity = () => call("/api/agent/identity");
+
+export const agentChat = (fields) => call("/api/agent/chat", json("POST", fields));
+
+export const agentHistory = (orgId, tenderId) =>
+  call(
+    `/api/agent/history?org_id=${encodeURIComponent(orgId)}${tenderId ? `&tender_id=${encodeURIComponent(tenderId)}` : ""}`,
+  );
