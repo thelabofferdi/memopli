@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://memopli.44.248.66.110.nip.io/api/$1" },
-    { "source": "/health", "destination": "https://memopli.44.248.66.110.nip.io/health" }
+    { "source": "/api/(.*)", "destination": "https://8000-agq6ra3q6xupilbxsv53imlxwq.instabox.tech/api/$1" },
+    { "source": "/health", "destination": "https://8000-agq6ra3q6xupilbxsv53imlxwq.instabox.tech/health" }
   ]
 }

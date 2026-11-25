@@ -5,16 +5,23 @@ services:
     environment:
       DATABASE_PATH: /data/app.db
       UPLOAD_DIR: /data/uploads
-      # Caddy est devant : l'API lit le dernier saut de X-Forwarded-For
+      # un proxy termine le TLS devant l'API (Instabox ou Caddy)
       TRUST_PROXY: "true"
       # Le frontend envoie le jeton : pour une exposition publique, passer
       # APP_ENV=prod ET AUTH_REQUIRED=true dans .env (l'API refuse de démarrer sinon).
       APP_ENV: ${APP_ENV:-dev}
     volumes:
       - soumission_data:/data
+    ports:
+      # Sur Instabox, le port publié ici devient https://<port>-<instance>.instabox.tech
+      # (TLS terminé par leur proxy, aucun certificat à gérer sur la machine).
+      - "8000:8000"
     restart: unless-stopped
 
+  # Utile seulement là où l'on contrôle réellement les ports 80 et 443 :
+  # docker compose --profile tls up -d
   caddy:
+    profiles: ["tls"]
     image: caddy:2-alpine
     depends_on: [api]
     ports:
