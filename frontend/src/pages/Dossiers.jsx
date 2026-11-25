@@ -1,31 +1,26 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as api from "../api.js";
-import { Badge, Empty, FileDrop } from "../components/Ui.jsx";
-import { dateFr, daysLeft, deadlineLabel, pieceStatus } from "../format.js";
+import { AppChip, Icon, PageHead, TINTS } from "../components/Brand.jsx";
+import Mascot from "../components/Mascot.jsx";
+import { Badge, FileDrop } from "../components/Ui.jsx";
+import { dateFr, daysLeft, deadlineLabel } from "../format.js";
 import { navigate } from "../router.js";
 
-function progress(t) {
-  if (t.drafts > 0) return { label: "Méthodologie rédigée", step: 3 };
-  if (t.requirements > 0) return { label: "Exigences relevées", step: 2 };
-  return { label: "Dossier déposé", step: 1 };
-}
+const STAGES = ["Dossier déposé", "Exigences relevées", "Méthodologie rédigée"];
+const stageOf = (t) => (t.drafts > 0 ? 3 : t.requirements > 0 ? 2 : 1);
 
-export default function Dossiers({ org, pieces, busy, run }) {
-  const [tenders, setTenders] = useState(null);
+export default function Dossiers({ org, tenders, busy, run, openNew }) {
   const [file, setFile] = useState(null);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(openNew);
   const fileRef = useRef(null);
+  const formRef = useRef(null);
 
   useEffect(() => {
-    let alive = true;
-    api
-      .listTenders(org.id)
-      .then((list) => alive && setTenders(list))
-      .catch(() => alive && setTenders([]));
-    return () => {
-      alive = false;
-    };
-  }, [org.id]);
+    if (openNew) {
+      setAdding(true);
+      setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+    }
+  }, [openNew]);
 
   const upload = async (e) => {
     e.preventDefault();
@@ -37,65 +32,43 @@ export default function Dossiers({ org, pieces, busy, run }) {
     if (ok && created) navigate(`/app/dossiers/${created.id}`);
   };
 
-  const expired = pieces.filter((p) => pieceStatus(p) === "perime").length;
-  const undated = pieces.filter((p) => pieceStatus(p) === "a_verifier").length;
-  const references = pieces.filter((p) => p.kind === "reference" || p.kind === "bilan").length;
+  const list = tenders || [];
   const showForm = adding || (tenders && tenders.length === 0);
 
   return (
     <>
-      <header className="page-head page-head-row">
-        <div>
-          <h1>Mes dossiers</h1>
-          <p>Chaque appel d'offres auquel vous répondez, du plus récent au plus ancien.</p>
-        </div>
-        {tenders && tenders.length > 0 && !adding && (
-          <button type="button" onClick={() => setAdding(true)}>
-            + Nouveau dossier
-          </button>
-        )}
-      </header>
-
-      <ul className="kpis">
-        <li>
-          <b>{tenders ? tenders.length : "–"}</b>
-          <span>dossier{tenders && tenders.length > 1 ? "s" : ""}</span>
-        </li>
-        <li>
-          <b>{pieces.length}</b>
-          <span>document{pieces.length > 1 ? "s" : ""}</span>
-        </li>
-        <li className={expired ? "kpi-ko" : ""}>
-          <b>{expired}</b>
-          <span>expiré{expired > 1 ? "s" : ""}</span>
-        </li>
-        <li className={undated ? "kpi-warn" : ""}>
-          <b>{undated}</b>
-          <span>sans date</span>
-        </li>
-      </ul>
-
-      {(expired > 0 || references < 2) && (
-        <p className="callout warn">
-          {expired > 0 && `${expired} document${expired > 1 ? "s" : ""} expiré${expired > 1 ? "s" : ""} : il${expired > 1 ? "s" : ""} bloquera${expired > 1 ? "ont" : ""} vos dépôts. `}
-          {references < 2 && `Ajoutez au moins deux références de chantiers pour pouvoir rédiger la méthodologie. `}
-          <a href="#/app/documents">Gérer mes documents →</a>
-        </p>
-      )}
+      <PageHead
+        kicker="Mes dossiers"
+        title="Vos appels d'offres."
+        sub="Chaque dossier auquel vous répondez, du plus récent au plus ancien."
+        tip={
+          list.length
+            ? "Ouvrez un dossier pour voir ses exigences, vérifier vos documents et me poser vos questions."
+            : "Déposez le PDF de l'appel d'offres : je le lis page par page et je relève chaque exigence."
+        }
+        mood={list.length ? "happy" : "think"}
+        actions={
+          list.length > 0 && !adding ? (
+            <button type="button" onClick={() => setAdding(true)}>
+              <Icon name="plus" size={16} /> Nouveau dossier
+            </button>
+          ) : null
+        }
+      />
 
       {showForm && (
-        <section className="panel" aria-labelledby="nouveau-titre">
+        <section className="panel newdoc" ref={formRef} aria-labelledby="nouveau-titre">
           <header className="panel-head">
-            <h2 id="nouveau-titre">Nouveau dossier</h2>
-            {adding && (
+            <h2 id="nouveau-titre">
+              <AppChip tint={TINTS.dossier} icon="upload" size={32} /> Nouveau dossier
+            </h2>
+            {adding && list.length > 0 && (
               <button type="button" className="ghost small" onClick={() => setAdding(false)}>
                 Annuler
               </button>
             )}
           </header>
-          <p className="panel-lede">
-            Déposez le PDF de l'appel d'offres publié par l'acheteur. MemoPli le lira page par page.
-          </p>
+          <p className="panel-lede">Déposez le PDF publié par l'acheteur. Comptez moins d'une minute pour 80 pages.</p>
           <form className="form" onSubmit={upload}>
             <div className="field field-wide">
               <FileDrop
@@ -108,7 +81,7 @@ export default function Dossiers({ org, pieces, busy, run }) {
             </div>
             <div className="form-actions">
               <button type="submit" disabled={Boolean(busy) || !file}>
-                Déposer le dossier
+                Déposer le dossier <Icon name="arrow" size={16} />
               </button>
             </div>
           </form>
@@ -120,16 +93,21 @@ export default function Dossiers({ org, pieces, busy, run }) {
           <span />
           <span />
         </div>
-      ) : tenders.length === 0 ? (
-        <Empty>Aucun dossier pour l'instant. Déposez votre premier appel d'offres ci-dessus.</Empty>
+      ) : list.length === 0 ? (
+        <div className="empty-big">
+          <Mascot size={140} mood="think" />
+          <h3>Aucun dossier pour l'instant.</h3>
+          <p>Votre premier appel d'offres apparaîtra ici, avec sa date limite et son avancement.</p>
+        </div>
       ) : (
         <ul className="tenders">
-          {tenders.map((t) => {
+          {list.map((t) => {
             const days = t.deadline ? daysLeft(t.deadline) : null;
-            const p = progress(t);
+            const stage = stageOf(t);
             return (
               <li key={t.id}>
                 <a className="tender-card" href={`#/app/dossiers/${t.id}`}>
+                  <AppChip tint={TINTS.dossier} icon="folder" size={44} />
                   <div className="tender-main">
                     <strong>{t.title || "Appel d'offres sans titre"}</strong>
                     <span className="meta">
@@ -139,33 +117,27 @@ export default function Dossiers({ org, pieces, busy, run }) {
                       <span aria-hidden="true">·</span>
                       déposé le {dateFr(t.created_at)}
                     </span>
-                  </div>
-                  <div className="tender-side">
-                    {t.deadline ? (
-                      <span className="tender-deadline">
-                        <small>Date limite</small>
-                        {dateFr(t.deadline)}
-                        <Badge status={days !== null && days < 0 ? "perime" : "a_verifier"}>
-                          {deadlineLabel(t.deadline)}
-                        </Badge>
-                      </span>
-                    ) : (
-                      <span className="tender-deadline">
-                        <small>Date limite</small>
-                        <span className="src-missing">non extrait</span>
-                      </span>
-                    )}
-                    <span className="tender-progress" aria-label={`Avancement : ${p.label}`}>
-                      <span className="bars" aria-hidden="true">
-                        {[1, 2, 3].map((n) => (
-                          <i key={n} className={n <= p.step ? "on" : ""} />
-                        ))}
-                      </span>
-                      {p.label}
+                    <span className="tender-steps" aria-label={`Avancement : ${STAGES[stage - 1]}`}>
+                      {STAGES.map((label, i) => (
+                        <span key={label} className={i < stage ? "on" : ""}>
+                          {label}
+                        </span>
+                      ))}
                     </span>
                   </div>
+                  <div className="tender-side">
+                    <small>Date limite</small>
+                    {t.deadline ? (
+                      <>
+                        <b>{dateFr(t.deadline)}</b>
+                        <Badge status={days !== null && days < 0 ? "perime" : "a_verifier"}>{deadlineLabel(t.deadline)}</Badge>
+                      </>
+                    ) : (
+                      <span className="src-missing">non extrait</span>
+                    )}
+                  </div>
                   <span className="tender-go" aria-hidden="true">
-                    →
+                    <Icon name="arrow" size={18} />
                   </span>
                 </a>
               </li>

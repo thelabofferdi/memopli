@@ -54,7 +54,6 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace }) {
   return (
     <Section
       id="coffre"
-      step="2"
       title="Vos documents"
       lede="Ajoutez chaque document avec sa date de fin de validité. Sans date, il reste « à vérifier » ; une fois expiré, il compte comme manquant."
       aside={

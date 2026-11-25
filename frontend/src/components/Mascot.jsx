@@ -22,10 +22,19 @@ function Spark({ x, y, s = 1, fill = "#a9b2ff" }) {
   );
 }
 
-export default function Mascot({ size = 320, title = "Pli, la mascotte de MemoPli", animated = true }) {
+// Humeurs : « happy » (par défaut), « worried » (un document bloque le dépôt),
+// « think » (Pli lit le dossier). Le visa reste bleu dans tous les cas : la
+// mascotte est la marque, jamais un statut.
+const MOUTHS = {
+  happy: "M148 158Q163 174 178 158",
+  worried: "M148 166Q163 154 178 166",
+  think: "M152 163H174",
+};
+
+export default function Mascot({ size = 320, title = "Pli, la mascotte de MemoPli", animated = true, mood = "happy" }) {
   return (
     <svg
-      className={animated ? "pli pli-animated" : "pli"}
+      className={[animated ? "pli pli-animated" : "pli", `pli-${mood}`].join(" ")}
       width={size}
       height={size * (340 / 320)}
       viewBox="0 0 320 340"
@@ -70,14 +79,17 @@ export default function Mascot({ size = 320, title = "Pli, la mascotte de MemoPl
 
         {/* visage */}
         <g className="pli-eyes">
-          <ellipse cx="136" cy="138" rx="9.5" ry="12.5" fill={INK} />
-          <ellipse cx="190" cy="138" rx="9.5" ry="12.5" fill={INK} />
-          <circle cx="139.5" cy="132.5" r="3.4" fill="#fff" />
-          <circle cx="193.5" cy="132.5" r="3.4" fill="#fff" />
+          <ellipse cx="136" cy={mood === "think" ? 134 : 138} rx="9.5" ry="12.5" fill={INK} />
+          <ellipse cx="190" cy={mood === "think" ? 134 : 138} rx="9.5" ry="12.5" fill={INK} />
+          <circle cx={mood === "think" ? 141 : 139.5} cy={mood === "think" ? 127 : 132.5} r="3.4" fill="#fff" />
+          <circle cx={mood === "think" ? 195 : 193.5} cy={mood === "think" ? 127 : 132.5} r="3.4" fill="#fff" />
         </g>
+        {mood === "worried" && (
+          <path d="M122 120l22 -7M204 120l-22 -7" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
+        )}
         <ellipse cx="118" cy="161" rx="11" ry="6.5" fill="#f6b3a0" opacity="0.55" />
         <ellipse cx="208" cy="161" rx="11" ry="6.5" fill="#f6b3a0" opacity="0.55" />
-        <path d="M148 158Q163 174 178 158" stroke={INK} strokeWidth="5" strokeLinecap="round" fill="none" />
+        <path className="pli-mouth" d={MOUTHS[mood] || MOUTHS.happy} stroke={INK} strokeWidth="5" strokeLinecap="round" fill="none" />
 
         {/* lignes de texte et étiquette de page */}
         <path d="M114 198H214M114 216H196" stroke="#cbd5e1" strokeWidth="6.5" strokeLinecap="round" />
@@ -98,7 +110,13 @@ export default function Mascot({ size = 320, title = "Pli, la mascotte de MemoPl
         <path d="M236 196Q266 198 272 168" stroke={INK} strokeWidth="7" strokeLinecap="round" fill="none" />
         <g className="pli-badge">
           <circle cx="280" cy="136" r="27" fill="#2b3ae0" stroke={INK} strokeWidth="5" />
-          <path d="M267 137l9 9 17-18" stroke="#fff" strokeWidth="6.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          {mood === "worried" ? (
+            <path d="M280 122v16M280 149v.5" stroke="#fff" strokeWidth="6.5" strokeLinecap="round" fill="none" />
+          ) : mood === "think" ? (
+            <path d="M268 136h.5M280 136h.5M292 136h.5" stroke="#fff" strokeWidth="7" strokeLinecap="round" fill="none" />
+          ) : (
+            <path d="M267 137l9 9 17-18" stroke="#fff" strokeWidth="6.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          )}
         </g>
         <circle cx="272" cy="166" r="10" fill="#fff" stroke={INK} strokeWidth="4.5" />
       </g>

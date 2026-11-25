@@ -1,13 +1,16 @@
 import React from "react";
 import { Section } from "../components/Ui.jsx";
+import { PageHead } from "../components/Brand.jsx";
 
 export default function Account({ user, org, onSignOut }) {
   return (
     <>
-      <header className="page-head">
-        <h1>Mon compte</h1>
-        <p>Les informations de connexion à votre espace MemoPli.</p>
-      </header>
+      <PageHead
+        kicker="Mon compte"
+        title="Votre connexion."
+        sub="Les informations de connexion à votre espace MemoPli."
+        tip="Vos dossiers et vos documents restent enregistrés, même après déconnexion."
+      />
 
       <Section id="compte" title="Connexion">
         <dl className="facts">

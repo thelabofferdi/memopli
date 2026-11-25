@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as api from "../api.js";
 import { Empty } from "../components/Ui.jsx";
+import { PageHead } from "../components/Brand.jsx";
 import { errorText, number } from "../format.js";
 
 // Recherche locale dans tout ce que l'entreprise a déposé : dossiers d'appel
@@ -61,13 +62,13 @@ export default function Search({ org, tenders }) {
 
   return (
     <>
-      <header className="page-head">
-        <h1>Rechercher</h1>
-        <p>
-          Retrouvez un mot, une exigence ou un montant dans vos appels d'offres et vos documents. La
-          recherche se fait sur nos serveurs, sans intelligence artificielle.
-        </p>
-      </header>
+      <PageHead
+        kicker="Rechercher"
+        title="Retrouvez n'importe quel passage."
+        sub="Un mot, une exigence ou un montant, dans vos appels d'offres et vos documents. La recherche se fait sur nos serveurs, sans intelligence artificielle."
+        tip="Pour une question en langage courant, ouvrez le dossier et demandez-moi : je cite la page."
+        mood="think"
+      />
 
       <form className="search" onSubmit={run} role="search">
         <span className="search-ico" aria-hidden="true">

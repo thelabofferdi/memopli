@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import * as api from "../api.js";
 import Company from "../components/Company.jsx";
 import { Mark, Wordmark } from "../components/Logo.jsx";
+import { Icon, PageHead, Ring } from "../components/Brand.jsx";
+import DocChecklist from "../components/DocChecklist.jsx";
+import Mascot from "../components/Mascot.jsx";
 import { Badge, Busy, ErrorBox } from "../components/Ui.jsx";
 import Vault from "../components/Vault.jsx";
 import { pieceStatus } from "../format.js";
@@ -9,6 +12,7 @@ import { navigate } from "../router.js";
 import Account from "./Account.jsx";
 import Dossier from "./Dossier.jsx";
 import Dossiers from "./Dossiers.jsx";
+import Home from "./Home.jsx";
 import Search from "./Search.jsx";
 
 // Espace client : barre latérale (dossiers, documents, entreprise, compte) et
@@ -16,45 +20,13 @@ import Search from "./Search.jsx";
 // vivent ici ; chaque dossier charge les siennes.
 
 const NAV = [
-  { to: "/app", match: (p) => p === "/app" || p.startsWith("/app/dossiers"), label: "Mes dossiers", icon: "folder" },
+  { to: "/app", match: (p) => p === "/app" || p === "/app/", label: "Accueil", icon: "home" },
+  { to: "/app/dossiers", match: (p) => p.startsWith("/app/dossiers"), label: "Mes dossiers", icon: "folder" },
   { to: "/app/recherche", match: (p) => p.startsWith("/app/recherche"), label: "Rechercher", icon: "search" },
   { to: "/app/documents", match: (p) => p.startsWith("/app/documents"), label: "Mes documents", icon: "files" },
   { to: "/app/entreprise", match: (p) => p.startsWith("/app/entreprise"), label: "Mon entreprise", icon: "building" },
 ];
 
-function Icon({ name }) {
-  const p = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" };
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      {name === "folder" && <path {...p} d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" />}
-      {name === "files" && (
-        <>
-          <path {...p} d="M8 3.5h7l4 4v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2z" />
-          <path {...p} d="M15 3.5v4h4M9.5 12.5h6M9.5 16h4" />
-        </>
-      )}
-      {name === "building" && (
-        <>
-          <path {...p} d="M4.5 20.5v-14l7-3v17M11.5 8.5h8v12" />
-          <path {...p} d="M3 20.5h18M7.5 9v.01M7.5 12.5v.01M7.5 16v.01M15 12v.01M15 15.5v.01" />
-        </>
-      )}
-      {name === "user" && (
-        <>
-          <circle {...p} cx="12" cy="8.5" r="3.5" />
-          <path {...p} d="M5 20c1-3.6 3.7-5.5 7-5.5s6 1.9 7 5.5" />
-        </>
-      )}
-      {name === "search" && (
-        <>
-          <circle {...p} cx="11" cy="11" r="6.5" />
-          <path {...p} d="m16 16 4.5 4.5" />
-        </>
-      )}
-      {name === "menu" && <path {...p} d="M4 7h16M4 12h16M4 17h16" />}
-    </svg>
-  );
-}
 
 // la recherche a besoin des titres des dossiers pour ses liens et son filtre
 function SearchPage({ org }) {
@@ -65,10 +37,14 @@ function SearchPage({ org }) {
   return <Search org={org} tenders={tenders} />;
 }
 
+const profileScore = (org) =>
+  [org?.ifu, org?.rccm, org?.sector, org?.headcount].filter((v) => v !== null && v !== undefined && v !== "").length / 4;
+
 export default function Workspace({ path }) {
   const [user, setUser] = useState(null);
   const [org, setOrg] = useState(null);
   const [pieces, setPieces] = useState([]);
+  const [tenders, setTenders] = useState(null);
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
@@ -98,6 +74,7 @@ export default function Workspace({ path }) {
           if (!alive) return;
           setOrg(full);
           setPieces(list);
+          api.listTenders(first.id).then((t) => alive && setTenders(t)).catch(() => alive && setTenders([]));
         }
       } catch (e) {
         if (alive) setError(e);
@@ -132,6 +109,15 @@ export default function Workspace({ path }) {
     }
   }, []);
 
+  const reloadTenders = useCallback(async () => {
+    if (org) setTenders(await api.listTenders(org.id).catch(() => []));
+  }, [org]);
+
+  // revenir sur l'accueil ou la liste rafraîchit l'avancement des dossiers
+  useEffect(() => {
+    if (route === "/app" || route === "/app/dossiers") reloadTenders();
+  }, [route, reloadTenders]);
+
   const reloadPieces = useCallback(async () => {
     if (org) setPieces(await api.listPieces(org.id));
   }, [org]);
@@ -145,6 +131,7 @@ export default function Workspace({ path }) {
         const created = await api.createOrg(fields);
         setOrg(await api.getOrg(created.id));
         setPieces([]);
+        setTenders([]);
       }
     });
 
@@ -201,10 +188,12 @@ export default function Workspace({ path }) {
   } else if (!org) {
     page = (
       <>
-        <header className="page-head">
-          <h1>Bienvenue</h1>
-          <p>Commencez par votre entreprise : elle sera reprise dans chacun de vos dossiers.</p>
-        </header>
+        <PageHead
+          kicker="Bienvenue"
+          title="Commençons par votre entreprise."
+          sub="Elle sera reprise dans chacun de vos dossiers."
+          tip="Bonjour, je suis Pli. Je vous accompagne de l'entreprise jusqu'au mémoire."
+        />
         <Company org={null} busy={busy} onSave={saveCompany} />
       </>
     );
@@ -222,24 +211,34 @@ export default function Workspace({ path }) {
   } else if (route.startsWith("/app/documents")) {
     page = (
       <>
-        <header className="page-head">
-          <h1>Mes documents</h1>
-          <p>Vos attestations, registres, références et bilans. Ils servent à tous vos dossiers.</p>
-        </header>
+        <PageHead
+          kicker="Mes documents"
+          title="Vos pièces, toujours à jour."
+          sub="Attestations, registres, références et bilans : ils servent à tous vos dossiers."
+          tip="Indiquez la date de fin de chaque document : je vous préviens avant qu'il n'expire."
+          mood="think"
+        />
+        <DocChecklist pieces={pieces} />
         <Vault pieces={pieces} busy={busy} onAdd={addPiece} onRemove={removePiece} onReplace={replacePiece} />
       </>
     );
   } else if (route.startsWith("/app/entreprise")) {
     page = (
       <>
-        <header className="page-head">
-          <h1>Mon entreprise</h1>
-          <p>Ces informations sont reprises dans chacun de vos dossiers.</p>
-        </header>
+        <PageHead
+          kicker="Mon entreprise"
+          title={org.name}
+          sub="Ces informations sont reprises dans chacun de vos dossiers."
+          tip={
+            query.get("bienvenue")
+              ? "Votre compte est créé ! Complétez votre entreprise, puis ajoutez vos documents."
+              : "Numéro fiscal et registre du commerce sont demandés dans presque tous les appels d'offres."
+          }
+          actions={<Ring value={profileScore(org)} size={64} stroke={7} label={`${Math.round(profileScore(org) * 4)}/4`} />}
+        />
         {query.get("bienvenue") && (
           <div className="welcome">
-            <strong>Votre compte est créé.</strong> Complétez votre entreprise, puis ajoutez vos
-            documents. Vous pourrez ensuite déposer votre premier appel d'offres.
+            <strong>Étape suivante :</strong> ajoutez vos attestations et deux références de chantiers.
             <div className="welcome-actions">
               <button type="button" onClick={() => navigate("/app/documents")}>
                 Ajouter mes documents
@@ -254,9 +253,22 @@ export default function Workspace({ path }) {
     page = <SearchPage org={org} />;
   } else if (route.startsWith("/app/compte")) {
     page = <Account user={user} org={org} onSignOut={signOut} />;
+  } else if (route.startsWith("/app/dossiers")) {
+    page = (
+      <Dossiers
+        org={org}
+        pieces={pieces}
+        tenders={tenders}
+        busy={busy}
+        run={run}
+        openNew={query.get("nouveau") === "1"}
+      />
+    );
   } else {
-    page = <Dossiers org={org} pieces={pieces} busy={busy} run={run} />;
+    page = <Home org={org} pieces={pieces} tenders={tenders} user={user} />;
   }
+
+  const lastTender = tenders && tenders[0];
 
   return (
     <div className={menu ? "ws menu-open" : "ws"}>
@@ -286,7 +298,7 @@ export default function Workspace({ path }) {
               className={item.match(route) ? "side-link on" : "side-link"}
               aria-current={item.match(route) ? "page" : undefined}
             >
-              <Icon name={item.icon} />
+              <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
               {item.icon === "files" && toTreat > 0 && <span className="side-count">{toTreat}</span>}
             </a>
@@ -294,6 +306,18 @@ export default function Workspace({ path }) {
         </nav>
 
         <div className="side-foot">
+          <div className="side-pli">
+            <span className="side-pli-av" aria-hidden="true">
+              <Mascot size={40} animated={false} />
+            </span>
+            <p>
+              <strong>Une question ?</strong>
+              Pli lit vos dossiers et cite la page.
+            </p>
+            <a href={lastTender ? `#/app/dossiers/${lastTender.id}?pli=1` : "#/app/dossiers?nouveau=1"}>
+              {lastTender ? "Demander à Pli" : "Déposer un dossier"} <Icon name="arrow" size={14} />
+            </a>
+          </div>
           {(apiDown || noKey) && (
             <div className="side-status">
               {apiDown && <Badge status="perime">service indisponible</Badge>}
@@ -312,7 +336,7 @@ export default function Workspace({ path }) {
             aria-current={route.startsWith("/app/compte") ? "page" : undefined}
           >
             <span className="side-user-av" aria-hidden="true">
-              <Icon name="user" />
+              <Icon name="user" size={20} />
             </span>
             <span className="side-user-text">
               <strong>Mon compte</strong>
@@ -331,7 +355,7 @@ export default function Workspace({ path }) {
             aria-expanded={menu}
             onClick={() => setMenu((m) => !m)}
           >
-            <Icon name="menu" />
+            <Icon name="menu" size={20} />
           </button>
           <a className="side-brand" href="#/app">
             <Mark size={28} />

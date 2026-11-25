@@ -7,12 +7,12 @@ import Mascot from "./components/Mascot.jsx";
 // (docs/08-sources.md) ; chaque promesse est tenue par le produit actuel.
 
 // À confirmer avant mise en ligne : adresse de contact réelle.
-const CONTACT_EMAIL = "contact@memopli.com";
+export const CONTACT_EMAIL = "contact@memopli.com";
 
 // Langage : nos clients n'emploient pas tous les mêmes mots (Bénin, Sénégal,
 // Côte d'Ivoire, ONG, bailleurs…). Règle de la page : le mot le plus simple,
 // et une définition au survol pour les rares termes impossibles à éviter.
-const GLOSSARY = {
+export const GLOSSARY = {
   dao: {
     name: "Dossier d'appel d'offres (DAO)",
     def: "Le dossier publié par l'acheteur : ce qu'il veut acheter, les documents à fournir, la façon dont les offres seront notées et la date limite.",
@@ -39,7 +39,7 @@ const GLOSSARY = {
   },
 };
 
-function Term({ k, children }) {
+export function Term({ k, children }) {
   const t = GLOSSARY[k];
   const id = `term-${k}`;
   return (
@@ -171,7 +171,7 @@ const EDGE = [
 ];
 
 // Les mêmes choses portent des noms différents selon le pays et l'organisme.
-const EQUIV = [
+export const EQUIV = [
   { ours: "Dossier d'appel d'offres", also: ["DAO", "DCE", "cahier des charges", "dossier de consultation", "termes de référence (TDR)"] },
   { ours: "Acheteur", also: ["autorité contractante", "maître d'ouvrage", "bailleur", "donneur d'ordre"] },
   { ours: "Mémoire technique", also: ["offre technique", "proposition technique", "note méthodologique"] },
@@ -229,7 +229,7 @@ function useInView(options = { threshold: 0.25 }) {
 }
 
 // Apparition au défilement : un seul observateur pour tous les [data-reveal].
-function useReveal() {
+export function useReveal() {
   useEffect(() => {
     const nodes = document.querySelectorAll("[data-reveal]");
     if (reduceMotion()) {
@@ -254,7 +254,7 @@ function useReveal() {
 const fmt = (n, decimals = 0) =>
   n.toLocaleString("fr-FR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 
-function CountUp({ to, decimals = 0, prefix = "", suffix = "" }) {
+export function CountUp({ to, decimals = 0, prefix = "", suffix = "" }) {
   const [ref, inView] = useInView({ threshold: 0.6 });
   const [value, setValue] = useState(reduceMotion() ? to : 0);
   const done = useRef(false);
@@ -531,8 +531,11 @@ function Journey() {
 
 // --------------------------------------------------- verdict interactif
 
-function VerdictToggle() {
+export function VerdictToggle({ onChange }) {
   const [replaced, setReplaced] = useState(false);
+  useEffect(() => {
+    onChange?.(replaced);
+  }, [replaced, onChange]);
   const pieces = [
     { label: "Attestation de régularité fiscale", page: 12, ok: true },
     { label: "Attestation CNSS", page: 14, ok: replaced },

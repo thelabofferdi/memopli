@@ -8,7 +8,10 @@ import Readiness from "../components/Readiness.jsx";
 import Requirements from "../components/Requirements.jsx";
 import Tender from "../components/Tender.jsx";
 import { Empty, Section, Stepper } from "../components/Ui.jsx";
-import { pieceStatus } from "../format.js";
+import { dateFr, daysLeft, pieceStatus } from "../format.js";
+import Halftone from "../components/Halftone.jsx";
+
+const NIGHT = ["#111633", "#1a2160", "#232f9c", "#2b3ae0", "#a9b2ff"];
 
 // Un dossier d'appel d'offres : lecture, exigences, contrôle des documents,
 // verdict, rédaction. Les statuts viennent du serveur ; l'écran ne fait que
@@ -107,7 +110,7 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
   if (missing) {
     return (
       <>
-        <a className="back" href="#/app">
+        <a className="back" href="#/app/dossiers">
           ← Mes dossiers
         </a>
         <Empty>Ce dossier n'existe pas, ou il n'appartient pas à votre entreprise.</Empty>
@@ -128,6 +131,7 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
   const references = pieces.filter((p) => p.kind === "reference" || p.kind === "bilan").length;
   const toTreat = pieces.filter((p) => pieceStatus(p) !== "valide").length;
   const hasReqs = reqs.length > 0;
+  const days = tender.deadline ? daysLeft(tender.deadline) : null;
 
   const steps = [
     { id: "dao", label: "L'appel d'offres", done: hasReqs },
@@ -139,12 +143,44 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
 
   return (
     <>
-      <a className="back" href="#/app">
+      <a className="back" href="#/app/dossiers">
         ← Mes dossiers
       </a>
-      <header className="page-head">
-        <h1>{tender.title || "Appel d'offres sans titre"}</h1>
-        <p>{tender.buyer ? `Acheteur : ${tender.buyer}` : "Lancez la lecture pour relever l'acheteur, la date limite et les exigences."}</p>
+      <header className="dossier-hero">
+        <Halftone colors={NIGHT} cell={5} shape="right" bias={0} speed={0.5} className="dossier-hero-dots" />
+        <div className="dossier-hero-main">
+          <p className="ph-kicker light">Dossier d'appel d'offres</p>
+          <h1>{tender.title || "Appel d'offres sans titre"}</h1>
+          <p>
+            {tender.buyer
+              ? `Acheteur : ${tender.buyer} · ${tender.page_count} pages`
+              : "Lancez « Relever les exigences » : je trouverai l'acheteur, la date limite et tout ce qui est demandé."}
+          </p>
+          <div className="dossier-hero-chips">
+            <span className={verdict ? (verdict.ready && !stale ? "chip-ok" : "chip-ko") : "chip-wait"}>
+              {verdict ? (verdict.ready && !stale ? "Prêt à déposer" : stale ? "À vérifier à nouveau" : `Pas prêt · ${verdict.blockers.length} blocage${verdict.blockers.length > 1 ? "s" : ""}`) : "Pas encore vérifié"}
+            </span>
+            <span>{reqs.length} exigence{reqs.length > 1 ? "s" : ""}</span>
+            <span>{drafts.length ? "méthodologie rédigée" : "méthodologie à rédiger"}</span>
+          </div>
+        </div>
+        <div className="dossier-hero-side">
+          {days !== null ? (
+            <div className={days < 0 ? "countdown past" : days <= 7 ? "countdown hot" : "countdown"}>
+              <b>{Math.abs(days)}</b>
+              <span>{days < 0 ? "jours de retard" : `jour${days > 1 ? "s" : ""} avant la date limite`}</span>
+              <small>{dateFr(tender.deadline)}</small>
+            </div>
+          ) : (
+            <div className="countdown none">
+              <b>—</b>
+              <span>date limite non extraite</span>
+            </div>
+          )}
+          <button type="button" className="btn-glass" onClick={() => setPliOpen(true)}>
+            <Mascot size={22} animated={false} /> Demander à Pli
+          </button>
+        </div>
       </header>
 
       <div className="dossier-steps">
