@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { dateFr, sectionLabel } from "../format.js";
+import { dateFr, sectionLabel } from "../lib/format.js";
 import { Badge, Empty, Section } from "./Ui.jsx";
 
 const SIGNATURE = "Proposition à relire et à adapter avant signature.";

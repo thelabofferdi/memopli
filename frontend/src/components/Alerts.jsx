@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { dateFr, daysLeft, pieceStatus } from "../format.js";
+import { dateFr, daysLeft, pieceStatus } from "../lib/format.js";
 import NotificationBell from "./ui/notification-bell.tsx";
 
 // Cloche d'alertes (Rare UI) : documents expirés, sans date ou qui expirent

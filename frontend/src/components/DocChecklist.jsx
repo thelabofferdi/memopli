@@ -1,6 +1,6 @@
 import React from "react";
-import { pieceStatus } from "../format.js";
-import { AppChip, Icon, Ring, TINTS } from "./Brand.jsx";
+import { pieceStatus } from "../lib/format.js";
+import { AppChip, Icon, Ring, TINTS } from "./brand/Brand.jsx";
 import { Badge } from "./Ui.jsx";
 
 // « Votre dossier type » : les pièces que demandent presque tous les appels

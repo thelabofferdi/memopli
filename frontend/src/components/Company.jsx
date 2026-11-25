@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { dateFr } from "../format.js";
+import { dateFr } from "../lib/format.js";
 import { Section } from "./Ui.jsx";
 
 const toForm = (org) => ({

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import * as api from "../api.js";
-import { Mark, Wordmark } from "../components/Logo.jsx";
-import Mascot from "../components/Mascot.jsx";
+import * as api from "../lib/api.js";
+import { Mark, Wordmark } from "../components/brand/Logo.jsx";
+import Mascot from "../components/brand/Mascot.jsx";
 import PasswordInput from "../components/ui/password-input.tsx";
-import { errorText } from "../format.js";
-import { navigate } from "../router.js";
+import { errorText } from "../lib/format.js";
+import { navigate } from "../lib/router.js";
 
 const MESSAGES = {
   identifiants_invalides: "Adresse e-mail ou mot de passe incorrect.",

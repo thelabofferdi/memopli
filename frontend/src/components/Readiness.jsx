@@ -1,5 +1,5 @@
 import React from "react";
-import { dateFr, statusLabel } from "../format.js";
+import { dateFr, statusLabel } from "../lib/format.js";
 import { Badge, Empty, Section, scrollToId } from "./Ui.jsx";
 
 const HINTS = {

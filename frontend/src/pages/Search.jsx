@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import * as api from "../api.js";
+import * as api from "../lib/api.js";
 import { Empty } from "../components/Ui.jsx";
-import { PageHead } from "../components/Brand.jsx";
-import { errorText, number } from "../format.js";
+import { PageHead } from "../components/brand/Brand.jsx";
+import { errorText, number } from "../lib/format.js";
 
 // Recherche locale dans tout ce que l'entreprise a déposé : dossiers d'appel
 // d'offres et documents. Aucun appel à l'IA : la recherche tourne sur le serveur.

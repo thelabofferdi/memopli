@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { dateFr, daysLeft, deadlineLabel } from "../format.js";
+import { dateFr, daysLeft, deadlineLabel } from "../lib/format.js";
 import { Badge, FileDrop, Section } from "./Ui.jsx";
 
 const NotFound = () => <span className="src-missing">non extrait</span>;

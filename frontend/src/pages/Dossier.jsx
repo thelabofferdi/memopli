@@ -1,15 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
-import * as api from "../api.js";
-import Costs from "../components/Costs.jsx";
+import * as api from "../lib/api.js";
 import Pli from "../components/Pli.jsx";
-import Mascot from "../components/Mascot.jsx";
+import Mascot from "../components/brand/Mascot.jsx";
 import Draft from "../components/Draft.jsx";
 import Readiness from "../components/Readiness.jsx";
 import Requirements from "../components/Requirements.jsx";
 import Tender from "../components/Tender.jsx";
 import { Empty, Section, Stepper } from "../components/Ui.jsx";
-import { dateFr, daysLeft, pieceStatus } from "../format.js";
-import Halftone from "../components/Halftone.jsx";
+import { dateFr, daysLeft, pieceStatus } from "../lib/format.js";
+import Halftone from "../components/brand/Halftone.jsx";
 
 const NIGHT = ["#111633", "#1a2160", "#232f9c", "#2b3ae0", "#a9b2ff"];
 
@@ -25,19 +24,19 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
   const [stale, setStale] = useState(false);
   const [drafts, setDrafts] = useState([]);
   const [openDraftId, setOpenDraftId] = useState("");
-  const [cost, setCost] = useState(null);
   const [piecesSeen, setPiecesSeen] = useState(pieces);
   // #/app/dossiers/<id>?pli=1 ouvre directement l'assistant
   const [pliOpen, setPliOpen] = useState(() => /[?&]pli=1/.test(window.location.hash));
   const closePli = useCallback(() => setPliOpen(false), []);
+  // le lien « Demander à Pli » peut viser le dossier déjà affiché : on écoute l'URL
+  useEffect(() => {
+    const onHash = () => {
+      if (/[?&]pli=1/.test(window.location.hash)) setPliOpen(true);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
-  const refreshCost = useCallback(async () => {
-    try {
-      setCost(await api.tenderCost(tenderId));
-    } catch {
-      // le coût est informatif : son absence ne bloque pas le dossier
-    }
-  }, [tenderId]);
 
   useEffect(() => {
     let alive = true;
@@ -55,7 +54,6 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
           const previous = await api.readiness(tenderId);
           if (alive && previous.matched > 0) setVerdict(previous);
         }
-        refreshCost();
       } catch (e) {
         if (alive && e.status === 404) setMissing(true);
       }
@@ -63,7 +61,7 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
     return () => {
       alive = false;
     };
-  }, [tenderId, refreshCost]);
+  }, [tenderId]);
 
   // un document ajouté ou retiré depuis le dernier verdict le rend caduc
   useEffect(() => {
@@ -81,7 +79,6 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
       setReqs(list);
       setVerdict(null);
       setStale(false);
-      refreshCost();
     });
 
   const correct = (requirementId, fields) =>
@@ -96,7 +93,6 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
       await api.matchReq(tenderId);
       setVerdict(await api.readiness(tenderId));
       setStale(false);
-      refreshCost();
     });
 
   const generate = (section) =>
@@ -104,7 +100,6 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
       const created = await api.draft(tenderId, section);
       setDrafts(await api.listDrafts(tenderId));
       setOpenDraftId(created.id);
-      refreshCost();
     });
 
   if (missing) {
@@ -235,8 +230,6 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
           step="5"
         />
       )}
-
-      <Costs cost={cost} />
 
       <button type="button" className="pli-fab" onClick={() => setPliOpen(true)} aria-haspopup="dialog" aria-label="Demander à Pli">
         <span className="pli-fab-av" aria-hidden="true">

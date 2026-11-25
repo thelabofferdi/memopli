@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
-import Halftone from "./components/Halftone.jsx";
-import { Mark, Wordmark } from "./components/Logo.jsx";
-import Mascot from "./components/Mascot.jsx";
-import { AppChip, Icon, PliSays } from "./components/Brand.jsx";
-import Faq from "./components/ui/faq.tsx";
-import ScrollProgress from "./components/ui/scroll-progress.tsx";
-import { CONTACT_EMAIL, CountUp, EQUIV, Term, VerdictToggle, useReveal } from "./Landing.jsx";
+import Halftone from "../components/brand/Halftone.jsx";
+import { Mark, Wordmark } from "../components/brand/Logo.jsx";
+import Mascot from "../components/brand/Mascot.jsx";
+import { AppChip, Icon, PliSays } from "../components/brand/Brand.jsx";
+import Faq from "../components/ui/faq.tsx";
+import ScrollProgress from "../components/ui/scroll-progress.tsx";
+import { CONTACT_EMAIL, CountUp, EQUIV, Term, VerdictToggle, useReveal } from "./LandingV1.jsx";
 
 // Landing v2 — la structure de « mesa » (LN, licence MIT) fondue dans
 // l'identité MemoPli : crème et encre, outremer pour l'action, ombres
@@ -385,7 +385,7 @@ function TimelineVisual({ item }) {
 
 // ------------------------------------------------------------- page
 
-export default function LandingV2() {
+export default function Landing() {
   const [situation, setSituation] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);

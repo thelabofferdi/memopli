@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as api from "../api.js";
-import { AppChip, Icon, PageHead, TINTS } from "../components/Brand.jsx";
-import Mascot from "../components/Mascot.jsx";
+import * as api from "../lib/api.js";
+import { AppChip, Icon, PageHead, TINTS } from "../components/brand/Brand.jsx";
+import Mascot from "../components/brand/Mascot.jsx";
 import { Badge, FileDrop } from "../components/Ui.jsx";
-import { dateFr, daysLeft, deadlineLabel } from "../format.js";
-import { navigate } from "../router.js";
+import { dateFr, daysLeft, deadlineLabel } from "../lib/format.js";
+import { navigate } from "../lib/router.js";
 
 const STAGES = ["Dossier déposé", "Exigences relevées", "Méthodologie rédigée"];
 const stageOf = (t) => (t.drafts > 0 ? 3 : t.requirements > 0 ? 2 : 1);

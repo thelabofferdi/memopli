@@ -5,7 +5,7 @@
 @layer theme, base, utilities;
 @import "tailwindcss/theme.css" layer(theme) source(none);
 @import "tailwindcss/utilities.css" layer(utilities);
-@source "./components/ui";
+@source "../components/ui";
 
 /* MemoPli est clair : la variante dark: ne s'active que sous une classe .dark
    (jamais posée), et non selon le réglage sombre du téléphone. */

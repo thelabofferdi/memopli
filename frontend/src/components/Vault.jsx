@@ -1,7 +1,18 @@
 import React, { useRef, useState } from "react";
-import { PIECE_KINDS, dateFr, daysLeft, kindLabel, pieceStatus, statusLabel } from "../format.js";
+import { PIECE_KINDS, dateFr, daysLeft, kindLabel, pieceStatus, statusLabel } from "../lib/format.js";
 import { Badge, Empty, FileDrop, Section } from "./Ui.jsx";
 import DeleteButton from "./ui/delete-button.tsx";
+
+// L'IA rapproche les documents par leur intitulé (jamais par leur contenu) :
+// l'exemple guide vers un intitulé qui dit ce que l'appel d'offres demande.
+const PLACEHOLDERS = {
+  attestation_fiscale: "Ex. Attestation de régularité fiscale 2026",
+  cnss: "Ex. Attestation CNSS 2026",
+  rccm: "Ex. Extrait RCCM 2026",
+  reference: "Ex. Voirie urbaine, 3,6 km, 985 M FCFA (2024)",
+  bilan: "Ex. Bilans 2024-2025 certifiés",
+  autre: "Ex. Garantie de soumission 2 %",
+};
 
 const EMPTY_ADD = { kind: "attestation_fiscale", label: "", expires_on: "", file: null };
 
@@ -91,8 +102,11 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace, side }
           <input
             value={form.label}
             onChange={(e) => setForm({ ...form, label: e.target.value })}
-            placeholder="Ex. Attestation CNSS 2026"
+            placeholder={PLACEHOLDERS[form.kind] || "Ex. Attestation CNSS 2026"}
           />
+          {form.kind === "reference" && (
+            <em className="field-hint">Indiquez l'objet et le montant : c'est l'intitulé que MemoPli compare aux exigences.</em>
+          )}
         </label>
         <label className="field">
           <span>Valable jusqu'au</span>

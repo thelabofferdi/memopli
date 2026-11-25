@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
-import Landing from "./Landing.jsx";
-import LandingV2 from "./LandingV2.jsx";
+import LandingV1 from "./landing/LandingV1.jsx";
+import Landing from "./landing/Landing.jsx";
 import Auth from "./pages/Auth.jsx";
 import Workspace from "./pages/Workspace.jsx";
-import { session } from "./api.js";
-import { navigate, useRoute } from "./router.js";
+import { session } from "./lib/api.js";
+import { navigate, useRoute } from "./lib/router.js";
 
 // #/              page publique (v2, inspirée de « mesa »)
 // #/v1            ancienne page publique, gardée le temps de la validation
@@ -28,6 +28,6 @@ export default function Root() {
   if (isApp) return loggedIn ? <Workspace path={path} /> : null;
   if (isAuth) return loggedIn ? null : <Auth mode={path.startsWith("/inscription") ? "signup" : "login"} path={path} />;
   // v1 gardée le temps de la validation ; /v2 reste un alias de la page actuelle
-  if (path.startsWith("/v1")) return <Landing />;
-  return <LandingV2 />;
+  if (path.startsWith("/v1")) return <LandingV1 />;
+  return <Landing />;
 }

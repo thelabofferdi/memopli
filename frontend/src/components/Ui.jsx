@@ -1,5 +1,5 @@
 import React, { forwardRef, useState } from "react";
-import { errorText, metaLabel, pageLabel, statusLabel } from "../format.js";
+import { errorText, metaLabel, pageLabel, statusLabel } from "../lib/format.js";
 
 // Le routage passe par le hash (#/app) : une ancre classique (#coffre) ferait
 // quitter l'application. On fait donc défiler la page sans toucher à l'URL.

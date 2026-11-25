@@ -1,6 +1,6 @@
 import React from "react";
 import { Section } from "../components/Ui.jsx";
-import { PageHead } from "../components/Brand.jsx";
+import { PageHead } from "../components/brand/Brand.jsx";
 
 export default function Account({ user, org, onSignOut }) {
   return (
@@ -31,10 +31,6 @@ export default function Account({ user, org, onSignOut }) {
           Pour changer de mot de passe ou d'adresse, écrivez-nous depuis l'adresse de votre compte.
         </p>
       </Section>
-
-      <p className="note credits">
-        Composants animés : <a href="https://rareui.com" target="_blank" rel="noreferrer">Rare UI</a> (licence MIT + Commons Clause).
-      </p>
 
       <Section id="session" title="Session">
         <div className="cta-row">

@@ -1,11 +1,11 @@
 import React from "react";
-import { AppChip, Icon, PliSays, Ring, TINTS } from "../components/Brand.jsx";
-import Halftone from "../components/Halftone.jsx";
-import Mascot from "../components/Mascot.jsx";
+import { AppChip, Icon, PliSays, Ring, TINTS } from "../components/brand/Brand.jsx";
+import Halftone from "../components/brand/Halftone.jsx";
+import Mascot from "../components/brand/Mascot.jsx";
 import AnimatedCounter from "../components/ui/animated-counter.tsx";
 import { Badge } from "../components/Ui.jsx";
-import { dateFr, daysLeft, deadlineLabel, kindLabel, pieceStatus } from "../format.js";
-import { navigate } from "../router.js";
+import { dateFr, daysLeft, deadlineLabel, kindLabel, pieceStatus } from "../lib/format.js";
+import { navigate } from "../lib/router.js";
 
 // Accueil de l'espace client : où j'en suis, quoi faire ensuite, ce qui presse.
 // Tout est calculé ici à partir des données du serveur (le code calcule).

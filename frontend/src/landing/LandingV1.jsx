@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Mark, Wordmark } from "./components/Logo.jsx";
-import Mascot from "./components/Mascot.jsx";
-import AnimatedCounter from "./components/ui/animated-counter.tsx";
+import { Mark, Wordmark } from "../components/brand/Logo.jsx";
+import Mascot from "../components/brand/Mascot.jsx";
+import AnimatedCounter from "../components/ui/animated-counter.tsx";
 
 // Page publique, destinée aux clients. Elle ne parle que de leur problème :
 // pas de modèle, pas de coût d'API, pas de jargon. Chaque chiffre a sa source
@@ -620,7 +620,7 @@ function PromiseIcon({ kind }) {
   );
 }
 
-export default function Landing() {
+export default function LandingV1() {
   const [scrolled, setScrolled] = useState(false);
   const [current, setCurrent] = useState("");
   const [menu, setMenu] = useState(false);

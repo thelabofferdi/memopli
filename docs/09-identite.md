@@ -1,7 +1,7 @@
 # Identité MemoPli
 
 Ce document est la référence : les valeurs ci-dessous sont celles du code
-(`frontend/src/styles.css`, `frontend/src/components/Logo.jsx`). Si l'une change,
+(`frontend/src/styles/styles.css`, `frontend/src/components/brand/Logo.jsx`). Si l'une change,
 elle change aux deux endroits.
 
 ## Le nom
@@ -34,7 +34,7 @@ coin `M23 0V6A3 3 0 0 0 26 9H32Z`, M en deux faces (`M_LEFT`, `M_RIGHT`).
 | `frontend/public/brand/memopli-mark-paper.svg` | `paper` : tuile papier, faces encre / outremer | fond outremer ou encre |
 | `frontend/public/brand/memopli-mark-mono.svg` | `mono` : une seule encre | tampons, fax, documents administratifs |
 | `frontend/public/favicon.svg` | `brand` | onglet du navigateur |
-| `frontend/src/components/Logo.jsx` | `<Mark variant />`, `<Wordmark />` | React |
+| `frontend/src/components/brand/Logo.jsx` | `<Mark variant />`, `<Wordmark />` | React |
 
 Le logotype : « Memo » encre + « Pli » outremer, Bricolage Grotesque **800**,
 interlettrage −0,035 em.
@@ -70,7 +70,7 @@ les mêmes contrastes en affirmant la marque, et ne se confond avec aucun statut
 
 ## La mascotte
 
-**Pli**, une feuille de dossier au coin corné (`frontend/src/components/Mascot.jsx`),
+**Pli**, une feuille de dossier au coin corné (`frontend/src/components/brand/Mascot.jsx`),
 SVG pur : contours `--ink`, corps papier, pli `--brand-light`, visa `--brand`.
 Elle salue d'une main, brandit le visa de l'autre, et porte l'étiquette « p. 12 »
 (chaque valeur porte sa page). Le visa est **bleu, jamais vert**. Usage : page

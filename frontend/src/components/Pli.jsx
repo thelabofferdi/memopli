@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as api from "../api.js";
-import { errorText } from "../format.js";
-import Mascot from "./Mascot.jsx";
+import * as api from "../lib/api.js";
+import { errorText } from "../lib/format.js";
+import Mascot from "./brand/Mascot.jsx";
 import AiStatus from "./ui/ai-status.tsx";
 
 // Indicateur Rare UI : Pli cherche, lit, puis rédige pendant l'attente.

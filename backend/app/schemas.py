@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-# types de pièces admis (cf. docs/03-data-model.md et frontend/src/format.js)
+# types de pièces admis (cf. docs/03-data-model.md et frontend/src/lib/format.js)
 PIECE_KINDS = {"attestation_fiscale", "cnss", "rccm", "reference", "bilan", "autre"}
 
 PIECE_KIND_LIST = Literal["attestation_fiscale", "cnss", "rccm", "reference", "bilan", "autre"]

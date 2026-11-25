@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import { Badge, Empty, Section, Source } from "./Ui.jsx";
 
+// Pondération : l'extraction la donne en points sur 100 (40) ; d'anciennes données
+// l'avaient en fraction (0,4). On affiche toujours un pourcentage.
+const pct = (w) => Math.round((w > 1 ? w : w * 100) * 10) / 10;
+
 const blankEdit = (req) => ({
   label: req.label,
   page: req.page ?? "",
   mandatory: Boolean(req.mandatory),
   // le poids est stocké entre 0 et 1, saisi en pourcentage
-  weight: req.weight === null || req.weight === undefined ? "" : Math.round(req.weight * 1000) / 10,
+  weight: req.weight === null || req.weight === undefined ? "" : pct(req.weight),
 });
 
 function RequirementRow({ req, edit, busy, onStart, onCancel, onSave, setEdit }) {
@@ -14,7 +18,8 @@ function RequirementRow({ req, edit, busy, onStart, onCancel, onSave, setEdit })
     const save = (e) => {
       e.preventDefault();
       const page = edit.page === "" ? null : Number(edit.page);
-      const weight = edit.weight === "" ? null : Number(edit.weight) / 100;
+      // le serveur stocke la pondération en points sur 100
+      const weight = edit.weight === "" ? null : Number(edit.weight);
       onSave(req.id, {
         label: edit.label.trim() || req.label,
         page: Number.isFinite(page) && page > 0 ? page : null,
@@ -81,7 +86,7 @@ function RequirementRow({ req, edit, busy, onStart, onCancel, onSave, setEdit })
           <strong>{req.label}</strong>
           <span className="meta">
             <Source page={req.page} />
-            {req.weight ? <span className="weight">{Math.round(req.weight * 100)} % de la note</span> : null}
+            {req.weight ? <span className="weight">{pct(req.weight)} % de la note</span> : null}
             {req.corrected ? <span className="corrected">corrigée par vous</span> : null}
           </span>
           {req.excerpt && <blockquote>{req.excerpt}</blockquote>}

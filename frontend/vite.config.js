@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  // Tailwind ne sert qu'aux composants RareUI (src/components/ui) : voir src/rare.css
+  // Tailwind ne sert qu'aux composants RareUI (src/components/ui) : voir src/styles/rare.css
   plugins: [react(), tailwindcss()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   server: {

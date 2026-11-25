@@ -1,6 +1,6 @@
 """Contrat d'erreur unique : toute erreur sort en {"error": {code, message, request_id}}.
 
-Le frontend (`frontend/src/api.js`) lit déjà `body.error.code` et
+Le frontend (`frontend/src/lib/api.js`) lit déjà `body.error.code` et
 `body.error.message` : ce module aligne enfin le serveur sur ce contrat, y
 compris pour les 404 et les erreurs de validation, qui renvoyaient `detail`.
 """
