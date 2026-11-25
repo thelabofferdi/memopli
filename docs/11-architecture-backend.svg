@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1010" width="1400" height="1010" role="img" aria-label="Architecture du back-end MemoPli">
+<defs>
+  <marker id="fleche" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M 0 0 L 10 5 L 0 10 z" fill="#5b6275"/>
+  </marker>
+</defs>
+<rect width="1400" height="1010" fill="#ffffff"/>
+<text x="48" y="58" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="30" fill="#0b1020" font-weight="700" text-anchor="start">MemoPli — architecture du back-end</text>
+<text x="48" y="86" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" fill="#5b6275" font-weight="normal" text-anchor="start">Un processus FastAPI, une base SQLite, un client IA. Le code calcule et décide ; l&#x27;IA lit et propose.</text>
+<line x1="48" y1="104" x2="1352" y2="104" stroke="#a9b2ff" stroke-width="2"/>
+<text x="48" y="140" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="17" fill="#1f2bb0" font-weight="700" text-anchor="start">1 · une requête, de la porte jusqu&#x27;au calcul</text>
+<text x="48" y="160" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11.5" fill="#5b6275" font-weight="normal" text-anchor="start">Chaque garde-fou est traversé dans cet ordre : rien n&#x27;atteint une route sans l&#x27;avoir passé.</text>
+<rect x="48" y="178" width="170" height="108" rx="10" ry="10" fill="#f3f4f8" stroke="#5b6275" stroke-width="1.5"/>
+<text x="62" y="202" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#0b1020" font-weight="700" text-anchor="start">Navigateur — React</text>
+<text x="62" y="223" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">jeton Bearer</text>
+<text x="62" y="238" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">fetch /api/*</text>
+<line x1="221" y1="232.0" x2="235" y2="232.0" stroke="#5b6275" stroke-width="1.5" marker-end="url(#fleche)"/>
+<rect x="238" y="178" width="170" height="108" rx="10" ry="10" fill="#f3f4f8" stroke="#5b6275" stroke-width="1.5"/>
+<text x="252" y="202" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#0b1020" font-weight="700" text-anchor="start">Caddy</text>
+<text x="252" y="223" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">TLS, origine unique</text>
+<text x="252" y="238" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">ajoute X-Forwarded-For</text>
+<line x1="411" y1="232.0" x2="425" y2="232.0" stroke="#5b6275" stroke-width="1.5" marker-end="url(#fleche)"/>
+<rect x="428" y="178" width="170" height="108" rx="10" ry="10" fill="#eceeff" stroke="#2b3ae0" stroke-width="1.5"/>
+<text x="442" y="202" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#0b1020" font-weight="700" text-anchor="start">HttpGuard</text>
+<text x="442" y="223" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">request_id, hôte admis</text>
+<text x="442" y="238" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">en-têtes, journal JSON</text>
+<line x1="601" y1="232.0" x2="615" y2="232.0" stroke="#5b6275" stroke-width="1.5" marker-end="url(#fleche)"/>
+<rect x="618" y="178" width="170" height="108" rx="10" ry="10" fill="#eceeff" stroke="#2b3ae0" stroke-width="1.5"/>
+<text x="632" y="202" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#0b1020" font-weight="700" text-anchor="start">BodyLimit</text>
+<text x="632" y="223" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">octets comptés</text>
+<text x="632" y="238" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">413 même en chunked</text>
+<line x1="791" y1="232.0" x2="805" y2="232.0" stroke="#5b6275" stroke-width="1.5" marker-end="url(#fleche)"/>
+<rect x="808" y="178" width="170" height="108" rx="10" ry="10" fill="#eceeff" stroke="#2b3ae0" stroke-width="1.5"/>
+<text x="822" y="202" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#0b1020" font-weight="700" text-anchor="start">Contrat d&#x27;erreur</text>
+<text x="822" y="223" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">{&quot;error&quot;:{code,</text>
+<text x="822" y="238" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">message,request_id}}</text>
+<line x1="981" y1="232.0" x2="995" y2="232.0" stroke="#5b6275" stroke-width="1.5" marker-end="url(#fleche)"/>
+<rect x="998" y="178" width="170" height="108" rx="10" ry="10" fill="#eceeff" stroke="#2b3ae0" stroke-width="1.5"/>
+<text x="1012" y="202" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#0b1020" font-weight="700" text-anchor="start">Auth + débits</text>
+<text x="1012" y="223" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">optional_user → 401</text>
+<text x="1012" y="238" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">10/min · 60/h · 5/15min</text>
+<line x1="1171" y1="232.0" x2="1185" y2="232.0" stroke="#5b6275" stroke-width="1.5" marker-end="url(#fleche)"/>
+<rect x="1188" y="178" width="170" height="108" rx="10" ry="10" fill="#eceeff" stroke="#2b3ae0" stroke-width="1.5"/>
+<text x="1202" y="202" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#0b1020" font-weight="700" text-anchor="start">Route + SQLite</text>
+<text x="1202" y="223" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">assert_access</text>
+<text x="1202" y="238" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">requêtes paramétrées</text>
+<text x="48" y="308" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">Le jeton n&#x27;est jamais stocké en clair (SHA-256), le mot de passe est haché en pbkdf2 240 000 itérations, et un jeton invalide répond 401 au lieu de retomber en anonyme.</text>
+<text x="48" y="340" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="17" fill="#1f2bb0" font-weight="700" text-anchor="start">2 · les quatre gestes du produit, et qui décide à chaque étape</text>
+<text x="48" y="360" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11.5" fill="#5b6275" font-weight="normal" text-anchor="start">Vert = le code tranche. Orange = le modèle propose, puis le schéma et les règles valident.</text>
+<rect x="48" y="378" width="322" height="224" rx="10" ry="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+<rect x="48" y="378" width="322" height="34" rx="10" ry="10" fill="#e6f4f1"/>
+<text x="62" y="400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" fill="#0f766e" font-weight="700" text-anchor="start">Dépôt du DAO</text>
+<text x="356" y="400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#5b6275" font-weight="normal" text-anchor="end">POST /api/tenders</text>
+<text x="62" y="432" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">entrée</text>
+<text x="154" y="432" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">multipart : PDF + org_id</text>
+<text x="62" y="451" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">garde-fous</text>
+<text x="154" y="451" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">extension, %PDF-, 20 Mo,</text>
+<text x="154" y="470" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">corps compté, 400 pages</text>
+<text x="62" y="489" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">traitement</text>
+<text x="154" y="489" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">pypdf hors boucle, pages</text>
+<text x="154" y="508" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">lues avant la première page</text>
+<text x="62" y="527" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">écrit</text>
+<text x="154" y="527" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">tenders + .pdf + .txt</text>
+<text x="62" y="546" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">décide</text>
+<text x="154" y="546" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">le code</text>
+<rect x="388" y="378" width="322" height="224" rx="10" ry="10" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+<rect x="388" y="378" width="322" height="34" rx="10" ry="10" fill="#fdf1e0"/>
+<text x="402" y="400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" fill="#b45309" font-weight="700" text-anchor="start">Extraction</text>
+<text x="696" y="400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#5b6275" font-weight="normal" text-anchor="end">POST …/requirements</text>
+<text x="402" y="432" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">entrée</text>
+<text x="494" y="432" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">texte balisé par page</text>
+<text x="402" y="451" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">garde-fous</text>
+<text x="494" y="451" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">≥ 500 caractères, débit IA,</text>
+<text x="494" y="470" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">relance = remplacement</text>
+<text x="402" y="489" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">modèle</text>
+<text x="494" y="489" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">titre, acheteur, date,</text>
+<text x="494" y="508" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">exigences + page + extrait</text>
+<text x="402" y="527" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">écrit</text>
+<text x="494" y="527" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">requirements, tenders, ai_calls</text>
+<text x="402" y="546" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">décide</text>
+<text x="494" y="546" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">le modèle propose,</text>
+<text x="494" y="565" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">le schéma Pydantic valide</text>
+<rect x="728" y="378" width="322" height="224" rx="10" ry="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+<rect x="728" y="378" width="322" height="34" rx="10" ry="10" fill="#e6f4f1"/>
+<text x="742" y="400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" fill="#0f766e" font-weight="700" text-anchor="start">Conformité</text>
+<text x="1036" y="400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#5b6275" font-weight="normal" text-anchor="end">POST …/match · GET …/readiness</text>
+<text x="742" y="432" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">entrée</text>
+<text x="834" y="432" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">exigences + pièces : intitulé,</text>
+<text x="834" y="451" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">type, date — jamais le fichier</text>
+<text x="742" y="470" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">modèle</text>
+<text x="834" y="470" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">rapproche exigence ↔ pièce</text>
+<text x="834" y="489" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">par identifiants seulement</text>
+<text x="742" y="508" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">code</text>
+<text x="834" y="508" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">valide / périmé / manquant /</text>
+<text x="834" y="527" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">à vérifier, puis les blocages</text>
+<text x="742" y="546" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">écrit</text>
+<text x="834" y="546" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">matches</text>
+<text x="742" y="565" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0f766e" font-weight="700" text-anchor="start">décide</text>
+<text x="834" y="565" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">le code tranche le statut</text>
+<rect x="1068" y="378" width="322" height="224" rx="10" ry="10" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+<rect x="1068" y="378" width="322" height="34" rx="10" ry="10" fill="#fdf1e0"/>
+<text x="1082" y="400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" fill="#b45309" font-weight="700" text-anchor="start">Rédaction</text>
+<text x="1376" y="400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#5b6275" font-weight="normal" text-anchor="end">POST …/draft</text>
+<text x="1082" y="432" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">entrée</text>
+<text x="1174" y="432" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">entreprise, marché, acheteur,</text>
+<text x="1174" y="451" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">grille, références (métadonnées)</text>
+<text x="1082" y="470" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">garde-fous</text>
+<text x="1174" y="470" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">au moins 2 références, débit IA</text>
+<text x="1082" y="489" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">modèle</text>
+<text x="1174" y="489" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">600–900 mots, « (à compléter) »</text>
+<text x="1174" y="508" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">si l&#x27;information manque</text>
+<text x="1082" y="527" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">écrit</text>
+<text x="1174" y="527" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">drafts + ai_calls</text>
+<text x="1082" y="546" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#b45309" font-weight="700" text-anchor="start">décide</text>
+<text x="1174" y="546" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">le modèle rédige,</text>
+<text x="1174" y="565" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#0b1020" font-weight="normal" text-anchor="start">le coût vient du fournisseur</text>
+<text x="48" y="646" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="17" fill="#1f2bb0" font-weight="700" text-anchor="start">3 · l&#x27;état, les fichiers, le modèle</text>
+<rect x="48" y="664" width="420" height="150" rx="10" ry="10" fill="#e6f4f1" stroke="#0f766e" stroke-width="1.5"/>
+<text x="62" y="688" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#0f766e" font-weight="700" text-anchor="start">SQLite — DATABASE_PATH</text>
+<text x="62" y="708" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#5b6275" font-weight="normal" text-anchor="start">9 tables · pas de REFERENCES : l&#x27;intégrité est tenue par le code</text>
+<text x="62" y="732" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">· organizations</text>
+<text x="198" y="732" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">· users</text>
+<text x="334" y="732" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">· sessions</text>
+<text x="62" y="752" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">· pieces</text>
+<text x="198" y="752" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">· tenders</text>
+<text x="334" y="752" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">· requirements</text>
+<text x="62" y="772" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">· matches</text>
+<text x="198" y="772" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">· drafts</text>
+<text x="334" y="772" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">· ai_calls</text>
+<rect x="488" y="664" width="300" height="150" rx="10" ry="10" fill="#f3f4f8" stroke="#5b6275" stroke-width="1.5"/>
+<text x="502" y="688" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#5b6275" font-weight="700" text-anchor="start">Fichiers déposés</text>
+<text x="502" y="708" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#5b6275" font-weight="normal" text-anchor="start">UPLOAD_DIR · nom choisi par le serveur</text>
+<text x="502" y="728" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">{td|pc}_{id}.pdf + {td}.txt</text>
+<text x="502" y="748" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">jamais servi en statique ;</text>
+<text x="502" y="766" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="normal" text-anchor="start">effacé avec sa pièce</text>
+<text x="502" y="794" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0f766e" font-weight="700" text-anchor="start">hors du regard du modèle</text>
+<rect x="808" y="664" width="544" height="150" rx="10" ry="10" fill="#fdf1e0" stroke="#b45309" stroke-width="1.5"/>
+<text x="822" y="688" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" fill="#b45309" font-weight="700" text-anchor="start">RodiumAi — compatible OpenAI</text>
+<text x="822" y="708" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#5b6275" font-weight="normal" text-anchor="start">unique sortie réseau du back-end ; timeout 120 s ; aucun fichier n&#x27;y est envoyé</text>
+<text x="822" y="734" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="700" text-anchor="start">chat_json</text>
+<text x="902" y="734" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">sortie JSON stricte, température 0</text>
+<text x="822" y="754" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="700" text-anchor="start">chat_text</text>
+<text x="902" y="754" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">texte libre, température 0,3</text>
+<text x="822" y="774" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0b1020" font-weight="700" text-anchor="start">journal</text>
+<text x="902" y="774" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">modèle, tokens, durée, coût → ai_calls</text>
+<line x1="48" y1="848" x2="1352" y2="848" stroke="#a9b2ff" stroke-width="1"/>
+<rect x="48" y="866" width="185.0" height="22" rx="11" ry="11" fill="#e6f4f1" stroke="#0f766e" stroke-width="1.5"/>
+<text x="140.5" y="881" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#0f766e" font-weight="700" text-anchor="middle">le code calcule et décide</text>
+<rect x="247.0" y="866" width="132.2" height="22" rx="11" ry="11" fill="#fdf1e0" stroke="#b45309" stroke-width="1.5"/>
+<text x="313.1" y="881" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#b45309" font-weight="700" text-anchor="middle">le modèle propose</text>
+<rect x="393.2" y="866" width="158.6" height="22" rx="11" ry="11" fill="#eceeff" stroke="#2b3ae0" stroke-width="1.5"/>
+<text x="472.5" y="881" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#2b3ae0" font-weight="700" text-anchor="middle">garde-fou / transport</text>
+<text x="48" y="912" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="start">Invariants : aucune valeur sans sa page · les pièces ne partent jamais au modèle · une seule route critique à la fois · contrat d&#x27;erreur unique.</text>
+<text x="1352" y="912" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="11" fill="#5b6275" font-weight="normal" text-anchor="end">docs/04-api.md · docs/10-securite.md · v0.2.0</text>
+</svg>

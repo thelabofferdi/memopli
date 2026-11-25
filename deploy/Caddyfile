@@ -1,0 +1,16 @@
+# API MemoPli derrière Caddy ; certificat obtenu automatiquement (Let's Encrypt).
+# Le nom résout vers le VPS via nip.io — aucun enregistrement DNS à créer.
+memopli.44.248.66.110.nip.io {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+	handle /health {
+		reverse_proxy api:8000
+	}
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

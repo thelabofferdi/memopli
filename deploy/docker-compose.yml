@@ -1,0 +1,32 @@
+services:
+  api:
+    build: ../backend
+    env_file: ../.env
+    environment:
+      DATABASE_PATH: /data/app.db
+      UPLOAD_DIR: /data/uploads
+      # Caddy est devant : l'API lit le dernier saut de X-Forwarded-For
+      TRUST_PROXY: "true"
+      # Le frontend envoie le jeton : pour une exposition publique, passer
+      # APP_ENV=prod ET AUTH_REQUIRED=true dans .env (l'API refuse de démarrer sinon).
+      APP_ENV: ${APP_ENV:-dev}
+    volumes:
+      - soumission_data:/data
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    depends_on: [api]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  soumission_data:
+  caddy_data:
+  caddy_config:
