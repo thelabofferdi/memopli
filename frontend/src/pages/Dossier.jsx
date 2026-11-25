@@ -238,11 +238,11 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
 
       <Costs cost={cost} />
 
-      <button type="button" className="pli-fab" onClick={() => setPliOpen(true)} aria-haspopup="dialog">
+      <button type="button" className="pli-fab" onClick={() => setPliOpen(true)} aria-haspopup="dialog" aria-label="Demander à Pli">
         <span className="pli-fab-av" aria-hidden="true">
           <Mascot size={36} animated={false} />
         </span>
-        Demander à Pli
+        <span className="pli-fab-label">Demander à Pli</span>
       </button>
       <Pli orgId={orgId} tenderId={tenderId} open={pliOpen} onClose={closePli} />
     </>

@@ -2631,3 +2631,25 @@ button.btn-glass:hover:not(:disabled) { background: rgba(255, 255, 255, 0.14); }
   .dossier-hero-side { grid-template-columns: minmax(0, 1fr); }
   .home-hero, .dossier-hero { box-shadow: 6px 6px 0 var(--brand); }
 }
+
+/* --- correctifs mobile */
+.v2-menu .v2-btn { margin: var(--s3) 0 var(--s2); height: 48px; border-bottom: 0; color: #fff; font-family: var(--font-text); font-size: 15px; justify-content: center; }
+@media (max-width: 640px) {
+  .v2-nav { width: calc(100% - 2 * var(--s3)); gap: var(--s2); }
+  .v2-nav-pill { padding: var(--s1) var(--s3); }
+  .v2-nav-right .v2-btn { display: none; }
+  .v2-hero-pli { display: none; }
+  .v2-hero { width: calc(100% - 2 * var(--s2)); padding-inline: var(--s4); }
+  .pli-fab { width: 56px; height: 56px; padding: 0; border-radius: 50%; justify-content: center; }
+  .pli-fab-label { display: none; }
+  .ws-content { padding-bottom: calc(var(--s8) + 56px); }
+  .home-hero-cta button { flex: 1 1 100%; }
+  .search input { font-size: 15px; }
+}
+@media (max-width: 380px) {
+  .v2-hero h1 { font-size: 36px; }
+  .v2-badge-pill .v2-sep { display: none; }
+  .ph h1, .home-hero h1 { font-size: 26px; }
+  .start-head { flex-direction: column; align-items: flex-start; gap: var(--s3); }
+  .doccheck-head { flex-direction: column; align-items: flex-start; gap: var(--s3); }
+}

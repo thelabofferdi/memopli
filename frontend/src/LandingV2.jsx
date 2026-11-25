@@ -452,6 +452,9 @@ export default function LandingV2() {
             <a href="#/connexion">
               Se connecter <Icon name="arrow" size={16} />
             </a>
+            <a href="#/inscription" className="v2-btn v2-btn-brand v2-btn-block">
+              Commencer un dossier
+            </a>
           </div>
         )}
       </nav>
