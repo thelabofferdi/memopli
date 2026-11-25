@@ -46,9 +46,16 @@ tar czf - --exclude='.git' --exclude='.venv' --exclude='node_modules' --exclude=
   | ssh studio-vocal 'tar xzf - -C ~/memopli'
 ssh studio-vocal 'cd ~/memopli/deploy && docker compose up -d --build'
 
-# Frontend
-cd frontend && vercel deploy --prod --yes
+# Frontend : depuis la RACINE du dépôt (le projet Vercel a « frontend » comme
+# dossier racine), et grâce à `.vercelignore` qui n'envoie que le frontend.
+vercel deploy --prod --yes
 ```
+
+`.vercelignore` n'est pas une précaution de style : `vercel deploy` envoie le
+**contenu du dossier courant**, y compris les fichiers non versionnés. Sans lui, un
+déploiement lancé depuis la racine aurait expédié `.env` (clé d'API) et `data/`.
+La voie durable reste le raccord Git de Vercel : il ne prend que les fichiers du
+dépôt, donc ni `.env` ni base.
 
 ## Sécurité du déploiement
 

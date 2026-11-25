@@ -1,0 +1,14 @@
+# Déploiement depuis la racine du dépôt : seul le frontend part chez Vercel.
+# Sans ce fichier, `vercel deploy` depuis la racine enverrait le backend, les docs,
+# mais aussi `.env` (clé d'API) et `data/` (base SQLite). Le projet Vercel a
+# « frontend » comme dossier racine : c'est ce sous-arbre qui est publié.
+/*
+!/frontend
+
+# Bruit local à l'intérieur du frontend
+frontend/node_modules
+frontend/dist
+frontend/.vercel
+frontend/.env
+frontend/.env.*
+frontend/.env.local
