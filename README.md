@@ -20,12 +20,12 @@ Sans Node ni build, on peut aussi servir le front compilé par FastAPI (`make bu
 ```
 backend/app/        FastAPI : main, db, ai, extract, schemas, config, auth, errors, uploads,
                     ocr (local), ingest (découpage, index), rag (BM25), agent (Pli), state, middleware
-backend/tests/      102 tests (pytest)
+backend/tests/      138 tests (pytest)
 frontend/src/
   main.jsx, Root.jsx  point d'entrée et routage (#/, #/connexion, #/app/…)
   lib/              api, format (statuts, dates), router, utils
   styles/           styles.css (styles maison), rare.css (Tailwind limité à Rare UI)
-  landing/          page publique (Landing) et ancienne version (LandingV1, #/v1)
+  landing/          page publique en français et en anglais (Landing) et ancienne version (LandingV1, #/v1)
   pages/            espace client : accueil, dossiers, dossier, documents, recherche, compte
   components/       composants de l'application ; brand/ (logo, mascotte Pli) ; ui/ (Rare UI)
 docs/               PRD, architecture, modèle de données, API, prompts, démo, business model,

@@ -6,6 +6,8 @@ import { AppChip, Icon, PliSays } from "../components/brand/Brand.jsx";
 import Faq from "../components/ui/faq.tsx";
 import ScrollProgress from "../components/ui/scroll-progress.tsx";
 import { CONTACT_EMAIL, CountUp, EQUIV, Term, VerdictToggle, useReveal } from "./LandingV1.jsx";
+import LangSwitch from "./LangSwitch.jsx";
+import { useT } from "./i18n.js";
 
 // Landing v2 — la structure de « mesa » (LN, licence MIT) fondue dans
 // l'identité MemoPli : crème et encre, outremer pour l'action, ombres
@@ -156,6 +158,7 @@ const BOARD = [
 const STATUS = { valide: "valide", expire: "expiré", manquant: "manquant", critere: "critère", non: "non extrait" };
 
 function Board() {
+  const t = useT();
   const [live, setLive] = useState(0);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
@@ -163,28 +166,28 @@ function Board() {
     return () => clearInterval(id);
   }, []);
   return (
-    <div className="v2-board" role="img" aria-label="Exemple : les exigences d'un appel d'offres, chacune avec sa page et son statut">
+    <div className="v2-board" role="img" aria-label={t("Exemple : les exigences d'un appel d'offres, chacune avec sa page et son statut")}>
       <div className="v2-board-head">
         <div>
-          <strong>Voirie urbaine · Akpakpa</strong>
-          <small>Exemple de dossier · Mairie de Cotonou</small>
+          <strong>{t("Voirie urbaine · Akpakpa")}</strong>
+          <small>{t("Exemple de dossier · Mairie de Cotonou")}</small>
         </div>
         <div className="v2-board-kpis">
           <span>
-            <b>10</b> exigences
+            <b>10</b> {t("exigences")}
           </span>
           <span>
-            <b>2</b> blocages
+            <b>2</b> {t("blocages")}
           </span>
-          <span className="v2-live">exemple</span>
+          <span className="v2-live">{t("exemple")}</span>
         </div>
       </div>
       <ul className="v2-board-grid">
         {BOARD.map((r, i) => (
           <li key={r.label} className={`v2-tile s-${r.status}${i === live ? " pulse" : ""}`}>
             <span className="v2-mono">{r.code}</span>
-            <strong>{r.label}</strong>
-            <em>{STATUS[r.status]}</em>
+            <strong>{t(r.label)}</strong>
+            <em>{t(STATUS[r.status])}</em>
           </li>
         ))}
       </ul>
@@ -195,6 +198,7 @@ function Board() {
 // -------------------------------------------------- démo du parcours (menu)
 
 function StepView({ id }) {
+  const t = useT();
   if (id === "entreprise")
     return (
       <div className="v2-view v2-form">
@@ -205,8 +209,8 @@ function StepView({ id }) {
           ["Secteur", "Bâtiment, travaux publics"],
         ].map(([k, v]) => (
           <div key={k}>
-            <small>{k}</small>
-            <span>{v}</span>
+            <small>{t(k)}</small>
+            <span>{t(v)}</span>
           </div>
         ))}
       </div>
@@ -219,14 +223,14 @@ function StepView({ id }) {
           ["Attestation CNSS", "expirée depuis le 30 septembre", "expire"],
           ["Extrait RCCM", "aucune date de fin", "verif"],
           ["Bilan 2025", "valable jusqu'au 30 juin 2027", "valide"],
-        ].map(([t, s, st]) => (
-          <li key={t}>
+        ].map(([nom, s, st]) => (
+          <li key={nom}>
             <span className={`v2-dot d-${st}`} />
             <div>
-              <strong>{t}</strong>
-              <small>{s}</small>
+              <strong>{t(nom)}</strong>
+              <small>{t(s)}</small>
             </div>
-            <em className={`v2-badge b-${st}`}>{st === "valide" ? "valide" : st === "expire" ? "expiré" : "à vérifier"}</em>
+            <em className={`v2-badge b-${st}`}>{t(st === "valide" ? "valide" : st === "expire" ? "expiré" : "à vérifier")}</em>
           </li>
         ))}
       </ul>
@@ -237,7 +241,7 @@ function StepView({ id }) {
         <div className="v2-drop">
           <Icon name="upload" size={22} />
           <strong>Appel-offres-voirie.pdf</strong>
-          <small>84 pages · lecture en cours</small>
+          <small>{t("84 pages · lecture en cours")}</small>
         </div>
         <div className="v2-pages" aria-hidden="true">
           {Array.from({ length: 36 }, (_, k) => (
@@ -254,13 +258,13 @@ function StepView({ id }) {
           ["p. 3", "Garantie de soumission de 2 %", "document"],
           ["p. 7", "Note méthodologique", "40 %"],
           ["—", "Délai d'exécution", "non extrait"],
-        ].map(([p, t, tag]) => (
-          <li key={t}>
+        ].map(([p, intitule, tag]) => (
+          <li key={intitule}>
             <span className={p === "—" ? "v2-page warn" : "v2-page"}>{p}</span>
             <div>
-              <strong>{t}</strong>
+              <strong>{t(intitule)}</strong>
             </div>
-            <em className={tag === "non extrait" ? "v2-badge b-verif" : "v2-badge b-brand"}>{tag}</em>
+            <em className={tag === "non extrait" ? "v2-badge b-verif" : "v2-badge b-brand"}>{t(tag)}</em>
           </li>
         ))}
       </ul>
@@ -268,16 +272,16 @@ function StepView({ id }) {
   return (
     <div className="v2-view v2-final">
       <div className="v2-verdict ok">
-        <strong>Prêt à déposer</strong>
-        <small>aucun document manquant ni expiré</small>
+        <strong>{t("Prêt à déposer")}</strong>
+        <small>{t("aucun document manquant ni expiré")}</small>
       </div>
       <div className="v2-paper">
-        <b>Méthodologie et organisation</b>
+        <b>{t("Méthodologie et organisation")}</b>
         <span />
         <span />
         <span className="short" />
         <span />
-        <i>à relire avant signature</i>
+        <i>{t("à relire avant signature")}</i>
       </div>
     </div>
   );
@@ -285,17 +289,18 @@ function StepView({ id }) {
 
 function Journey() {
   const [active, setActive] = useState(0);
+  const t = useT();
   const step = STEPS[active];
   return (
     <>
       <div className="v2-wrap v2-sec-head v2-split" data-reveal>
         <div>
-          <p className="v2-kicker">Le parcours · cinq étapes</p>
+          <p className="v2-kicker">{t("Le parcours · cinq étapes")}</p>
           <h2 className="v2-journey-title" key={step.id}>
-            <StepChip step={step} size={44} /> {step.head[0]} <span className="v2-fade">{step.head[1]}</span>
+            <StepChip step={step} size={44} /> {t(step.head[0])} <span className="v2-fade">{t(step.head[1])}</span>
           </h2>
         </div>
-        <p className="v2-aside">Choisissez une étape. Chacune s'ouvre quand la précédente est faite.</p>
+        <p className="v2-aside">{t("Choisissez une étape. Chacune s'ouvre quand la précédente est faite.")}</p>
       </div>
       <div className="v2-band">
         <Halftone colors={DOTS.blue} cell={6} dot="round" shape="field" bias={-0.12} speed={0.6} className="v2-band-dots" />
@@ -307,8 +312,8 @@ function Journey() {
                   <button type="button" className={i === active ? "on" : ""} onClick={() => setActive(i)} aria-pressed={i === active}>
                     <StepChip step={s} />
                     <span>
-                      <strong>{s.title}</strong>
-                      <small>{s.sub}</small>
+                      <strong>{t(s.title)}</strong>
+                      <small>{t(s.sub)}</small>
                     </span>
                     <em className="v2-mono">{String(i + 1).padStart(2, "0")}</em>
                   </button>
@@ -317,12 +322,12 @@ function Journey() {
             </ol>
             <div className="v2-app-main">
               <div className="v2-app-bar">
-                <span className="on">{step.title}</span>
-                <span>Étape {active + 1} sur 5</span>
+                <span className="on">{t(step.title)}</span>
+                <span>{t("Étape {n} sur 5", { n: active + 1 })}</span>
               </div>
               <div className="v2-app-body" key={step.id}>
                 <StepView id={step.id} />
-                <PliSays mood={step.mood}>{step.tip}</PliSays>
+                <PliSays mood={step.mood}>{t(step.tip)}</PliSays>
               </div>
             </div>
           </div>
@@ -335,30 +340,31 @@ function Journey() {
 // ------------------------------------------------------------ frise
 
 function TimelineVisual({ item }) {
+  const t = useT();
   return (
     <div className="v2-tl-visual">
       <Halftone colors={DOTS[item.tint]} cell={5} dot="round" shape="edges" seed={item.title.length} speed={0.5} className="v2-tl-dots" />
-      <span className="v2-time v2-mono">{item.step}</span>
+      <span className="v2-time v2-mono">{t(item.step)}</span>
       {item.big && (
         <div className="v2-tl-card">
           <b>{item.big}</b>
-          <small>{item.small}</small>
+          <small>{t(item.small)}</small>
         </div>
       )}
       {item.chips && (
         <div className="v2-tl-avatars">
           {item.chips.map((c, i) => (
             <span key={c} className={i === 1 ? "bad" : ""}>
-              {c}
+              {t(c)}
             </span>
           ))}
         </div>
       )}
       {item.verdict && (
         <div className="v2-tl-verdict">
-          <span className="ko">Pas prêt</span>
+          <span className="ko">{t("Pas prêt")}</span>
           <Icon name="arrow" size={14} />
-          <span className="ok">Prêt</span>
+          <span className="ok">{t("Prêt")}</span>
         </div>
       )}
       {item.draft && (
@@ -366,7 +372,7 @@ function TimelineVisual({ item }) {
           <span />
           <span />
           <span className="short" />
-          <i>à compléter</i>
+          <i>{t("à compléter")}</i>
         </div>
       )}
       {item.pli && (
@@ -392,7 +398,12 @@ export default function Landing() {
   const [current, setCurrent] = useState("");
   const [ready, setReady] = useState(false);
   const onVerdict = useCallback((r) => setReady(r), []);
+  const t = useT();
   useReveal();
+
+  useEffect(() => {
+    document.title = t("MemoPli — votre dossier d'appel d'offres");
+  }, [t]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -429,18 +440,19 @@ export default function Landing() {
           </a>
           {NAV.map(([id, label]) => (
             <a key={id} href={`#${id}`} onClick={go(id)} className={current === id ? "v2-nav-link on" : "v2-nav-link"}>
-              {label}
+              {t(label)}
             </a>
           ))}
         </div>
         <div className="v2-nav-right">
+          <LangSwitch />
           <a href="#/connexion" className="v2-nav-link v2-nav-login">
-            Se connecter
+            {t("Se connecter")}
           </a>
           <a href="#/inscription" className="v2-btn v2-btn-brand">
-            Commencer
+            {t("Commencer")}
           </a>
-          <button type="button" className="v2-burger" aria-label={menu ? "Fermer le menu" : "Ouvrir le menu"} aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
+          <button type="button" className="v2-burger" aria-label={t(menu ? "Fermer le menu" : "Ouvrir le menu")} aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
             <Icon name={menu ? "close" : "menu"} size={20} />
           </button>
         </div>
@@ -448,14 +460,14 @@ export default function Landing() {
           <div className="v2-menu">
             {NAV.map(([id, label]) => (
               <a key={id} href={`#${id}`} onClick={go(id)}>
-                {label} <Icon name="arrow" size={16} />
+                {t(label)} <Icon name="arrow" size={16} />
               </a>
             ))}
             <a href="#/connexion">
-              Se connecter <Icon name="arrow" size={16} />
+              {t("Se connecter")} <Icon name="arrow" size={16} />
             </a>
             <a href="#/inscription" className="v2-btn v2-btn-brand v2-btn-block">
-              Commencer un dossier
+              {t("Commencer un dossier")}
             </a>
           </div>
         )}
@@ -466,31 +478,36 @@ export default function Landing() {
         <Halftone colors={DOTS.night} cell={5} shape="right" bias={0.08} speed={0.8} className="v2-hero-dots" />
         <div className="v2-hero-in">
           <p className="v2-badge-pill" data-reveal>
-            <span className="v2-spark" /> Nouveau <span className="v2-sep">Pour les PME qui répondent aux appels d'offres</span>
+            <span className="v2-spark" /> {t("Nouveau")}{" "}
+            <span className="v2-sep">{t("Pour les PME qui répondent aux appels d'offres")}</span>
           </p>
           <h1 data-reveal>
-            Ne repartez plus de <span className="hl v2-hl">zéro</span> <span className="v2-grad">à chaque appel d'offres.</span>
+            {t("Ne repartez plus de")} <span className="hl v2-hl">{t("zéro")}</span>{" "}
+            <span className="v2-grad">{t("à chaque appel d'offres.")}</span>
           </h1>
           <p className="v2-lede" data-reveal>
-            MemoPli lit le <Term k="dao">dossier d'appel d'offres</Term>, relève tout ce que demande l'
-            <Term k="acheteur">acheteur</Term> avec sa page, vérifie vos documents et rédige la méthodologie de
-            votre <Term k="memoire">mémoire technique</Term> avec vos chantiers. Vous relisez, vous signez.
+            {t("MemoPli lit le")} <Term k="dao">{t("dossier d'appel d'offres")}</Term>
+            {t(", relève tout ce que demande l'")}
+            <Term k="acheteur">{t("acheteur")}</Term>
+            {t(" avec sa page, vérifie vos documents et rédige la méthodologie de votre")}{" "}
+            <Term k="memoire">{t("mémoire technique")}</Term>
+            {t(" avec vos chantiers. Vous relisez, vous signez.")}
           </p>
           <div className="v2-hero-cta" data-reveal>
             <a href="#/inscription" className="v2-btn v2-btn-brand v2-btn-lg">
-              Commencer un dossier <Icon name="arrow" size={16} />
+              {t("Commencer un dossier")} <Icon name="arrow" size={16} />
             </a>
             <div className="v2-proof">
-              <small>À partir de</small>
+              <small>{t("À partir de")}</small>
               <b>25 000 FCFA</b>
-              <span>par dossier · rien à installer</span>
+              <span>{t("par dossier · rien à installer")}</span>
             </div>
           </div>
           <div className="v2-chips" data-reveal>
             {STEPS.map((s) => (
               <StepChip key={s.id} step={s} size={30} />
             ))}
-            <span className="v2-chips-label">cinq étapes, un seul parcours</span>
+            <span className="v2-chips-label">{t("cinq étapes, un seul parcours")}</span>
           </div>
         </div>
         <div className="v2-hero-board" data-reveal>
@@ -511,18 +528,18 @@ export default function Landing() {
         <section id="dossier" className="v2-sec">
           <div className="v2-wrap v2-sec-head v2-split" data-reveal>
             <div>
-              <p className="v2-kicker">Un dossier, de bout en bout</p>
-              <h2>Un dossier avec MemoPli.</h2>
-              <p className="v2-sub">Du PDF de l'acheteur au mémoire à relire. Voici qui fait quoi, étape par étape.</p>
+              <p className="v2-kicker">{t("Un dossier, de bout en bout")}</p>
+              <h2>{t("Un dossier avec MemoPli.")}</h2>
+              <p className="v2-sub">{t("Du PDF de l'acheteur au mémoire à relire. Voici qui fait quoi, étape par étape.")}</p>
             </div>
-            <span className="v2-pill-mono v2-mono">dépôt → mémoire</span>
+            <span className="v2-pill-mono v2-mono">{t("dépôt → mémoire")}</span>
           </div>
           <ul className="v2-wrap v2-tl">
-            {TIMELINE.map((t, i) => (
-              <li key={t.title} data-reveal style={{ "--d": i % 3 }}>
-                <TimelineVisual item={t} />
-                <h3>{t.title}</h3>
-                <p>{t.text}</p>
+            {TIMELINE.map((item, i) => (
+              <li key={item.title} data-reveal style={{ "--d": i % 3 }}>
+                <TimelineVisual item={item} />
+                <h3>{t(item.title)}</h3>
+                <p>{t(item.text)}</p>
               </li>
             ))}
           </ul>
@@ -531,8 +548,8 @@ export default function Landing() {
               <li key={f.src + f.to} data-reveal style={{ "--d": i }}>
                 <Halftone colors={DOTS.cream} cell={5} dot="round" shape="right" seed={i + 3} speed={0.4} className="v2-stat-dots" />
                 <CountUp to={f.to} prefix={f.prefix} suffix={f.suffix} />
-                <span>{f.text}</span>
-                <small>{f.src}</small>
+                <span>{t(f.text)}</span>
+                <small>{t(f.src)}</small>
               </li>
             ))}
           </ul>
@@ -541,9 +558,9 @@ export default function Landing() {
         {/* ------------------------------------------------------ pour qui */}
         <section className="v2-sec" id="pour-qui">
           <div className="v2-wrap v2-sec-head" data-reveal>
-            <p className="v2-kicker">Pour qui</p>
-            <h2>Pour celles et ceux qui montent les dossiers.</h2>
-            <p className="v2-sub">Responsables administratifs, assistantes de direction, dirigeants de PME : souvent seuls, toujours pressés.</p>
+            <p className="v2-kicker">{t("Pour qui")}</p>
+            <h2>{t("Pour celles et ceux qui montent les dossiers.")}</h2>
+            <p className="v2-sub">{t("Responsables administratifs, assistantes de direction, dirigeants de PME : souvent seuls, toujours pressés.")}</p>
           </div>
           <div className="v2-wrap v2-who">
             <div className="v2-who-art">
@@ -553,12 +570,12 @@ export default function Landing() {
               </span>
             </div>
             <div className="v2-who-text">
-              <p className="v2-kicker">Situation {situation + 1} sur 3</p>
+              <p className="v2-kicker">{t("Situation {n} sur 3", { n: situation + 1 })}</p>
               <p className="v2-quote" key={situation}>
-                {SITUATIONS[situation].text}
+                {t(SITUATIONS[situation].text)}
               </p>
               <p className="v2-quote-by">
-                <StepChip step={STEPS[situation + 2]} size={22} /> {SITUATIONS[situation].who}
+                <StepChip step={STEPS[situation + 2]} size={22} /> {t(SITUATIONS[situation].who)}
               </p>
               <div className="v2-who-tabs" role="tablist">
                 {SITUATIONS.map((s, i) => (
@@ -570,8 +587,8 @@ export default function Landing() {
                     className={i === situation ? "on" : ""}
                     onClick={() => setSituation(i)}
                   >
-                    <strong>{s.short}</strong>
-                    <small>situation {i + 1}</small>
+                    <strong>{t(s.short)}</strong>
+                    <small>{t("situation {n}", { n: i + 1 })}</small>
                   </button>
                 ))}
               </div>
@@ -584,14 +601,13 @@ export default function Landing() {
           <Halftone colors={DOTS.night} cell={6} dot="round" shape="left" speed={0.5} className="v2-brandband-dots" />
           <div className="v2-wrap v2-verdict-in">
             <div data-reveal>
-              <p className="v2-kicker v2-kicker-light">Avant de déposer</p>
-              <h2>Le bouton reste gris tant qu'un document manque.</h2>
+              <p className="v2-kicker v2-kicker-light">{t("Avant de déposer")}</p>
+              <h2>{t("Le bouton reste gris tant qu'un document manque.")}</h2>
               <p className="v2-sub">
-                Un document expiré compte comme un document manquant. « Prêt à déposer » ne s'active que
-                lorsque tous les documents demandés sont valides. Essayez.
+                {t("Un document expiré compte comme un document manquant. « Prêt à déposer » ne s'active que lorsque tous les documents demandés sont valides. Essayez.")}
               </p>
               <PliSays mood={ready ? "happy" : "worried"} dark>
-                {ready ? "Tout est en règle. Vous pouvez déposer sereinement." : "L'attestation CNSS a expiré : je bloque le dépôt tant qu'elle n'est pas remplacée."}
+                {t(ready ? "Tout est en règle. Vous pouvez déposer sereinement." : "L'attestation CNSS a expiré : je bloque le dépôt tant qu'elle n'est pas remplacée.")}
               </PliSays>
             </div>
             <div data-reveal>
@@ -604,12 +620,12 @@ export default function Landing() {
         <section id="garanties" className="v2-sec">
           <div className="v2-wrap v2-sec-head v2-split" data-reveal>
             <div>
-              <p className="v2-kicker">Nos garanties</p>
-              <h2>Ce que MemoPli ne fera jamais.</h2>
-              <p className="v2-sub">Un dossier d'appel d'offres engage votre entreprise. MemoPli ne remplit jamais un vide à votre place.</p>
+              <p className="v2-kicker">{t("Nos garanties")}</p>
+              <h2>{t("Ce que MemoPli ne fera jamais.")}</h2>
+              <p className="v2-sub">{t("Un dossier d'appel d'offres engage votre entreprise. MemoPli ne remplit jamais un vide à votre place.")}</p>
             </div>
             <a href="#/inscription" className="v2-link">
-              Essayer <Icon name="arrow" size={14} />
+              {t("Essayer")} <Icon name="arrow" size={14} />
             </a>
           </div>
           <ul className="v2-wrap v2-cards">
@@ -617,16 +633,16 @@ export default function Landing() {
               <li key={p.n} style={{ "--tint": p.tint, "--d": i % 2 }} data-reveal>
                 <div className="v2-card-head v2-mono">
                   <span>#{p.n}</span>
-                  <span>garantie</span>
+                  <span>{t("garantie")}</span>
                 </div>
                 <p className="v2-card-tag">
                   <span className="v2-chip v2-chip-sm" style={{ "--tint": p.tint }}>
                     <Icon name={p.icon} size={11} />
                   </span>
-                  {p.tag}
+                  {t(p.tag)}
                 </p>
-                <h3>{p.title}</h3>
-                <p>{p.text}</p>
+                <h3>{t(p.title)}</h3>
+                <p>{t(p.text)}</p>
               </li>
             ))}
           </ul>
@@ -636,18 +652,18 @@ export default function Landing() {
         <section id="lexique" className="v2-sec">
           <div className="v2-wrap v2-lex">
             <div data-reveal>
-              <p className="v2-kicker">Même chose, autres noms</p>
-              <h2>Chacun ses mots. Le dossier reste le même.</h2>
-              <p className="v2-sub">D'un pays ou d'un organisme à l'autre, les mêmes documents changent de nom. Voici les équivalences les plus courantes.</p>
-              <PliSays mood="think">Nommez vos documents avec vos propres mots : vous vérifiez chaque rapprochement que je propose.</PliSays>
+              <p className="v2-kicker">{t("Même chose, autres noms")}</p>
+              <h2>{t("Chacun ses mots. Le dossier reste le même.")}</h2>
+              <p className="v2-sub">{t("D'un pays ou d'un organisme à l'autre, les mêmes documents changent de nom. Voici les équivalences les plus courantes.")}</p>
+              <PliSays mood="think">{t("Nommez vos documents avec vos propres mots : vous vérifiez chaque rapprochement que je propose.")}</PliSays>
             </div>
             <dl className="v2-lex-table" data-reveal>
               {EQUIV.map((e) => (
                 <div key={e.ours}>
-                  <dt>{e.ours}</dt>
+                  <dt>{t(e.ours)}</dt>
                   <dd>
                     {e.also.map((a) => (
-                      <span key={a}>{a}</span>
+                      <span key={a}>{t(a)}</span>
                     ))}
                   </dd>
                 </div>
@@ -659,43 +675,43 @@ export default function Landing() {
         {/* --------------------------------------------------------- tarif */}
         <section id="tarif" className="v2-sec">
           <div className="v2-wrap v2-sec-head v2-center" data-reveal>
-            <p className="v2-kicker">Tarif</p>
-            <h2>Vous payez un dossier. Pas un logiciel.</h2>
-            <p className="v2-sub">Pas d'abonnement obligatoire, rien à installer : le prix suit le dossier que vous préparez.</p>
+            <p className="v2-kicker">{t("Tarif")}</p>
+            <h2>{t("Vous payez un dossier. Pas un logiciel.")}</h2>
+            <p className="v2-sub">{t("Pas d'abonnement obligatoire, rien à installer : le prix suit le dossier que vous préparez.")}</p>
           </div>
           <div className="v2-wrap v2-price">
             <div className="v2-price-card main" data-reveal>
-              <p className="v2-price-name">Par dossier</p>
+              <p className="v2-price-name">{t("Par dossier")}</p>
               <p className="v2-price-amount">
                 25 000 – 50 000 <small>FCFA</small>
               </p>
-              <p className="v2-price-sub">Selon la taille du mémoire.</p>
+              <p className="v2-price-sub">{t("Selon la taille du mémoire.")}</p>
               <ul>
-                <li>Tout ce que demande l'acheteur, page par page</li>
-                <li>Le contrôle de vos documents et le verdict</li>
-                <li>La méthodologie rédigée avec vos chantiers</li>
-                <li>Pli pour répondre à vos questions</li>
-                <li>Un accompagnement sur votre premier dossier</li>
+                <li>{t("Tout ce que demande l'acheteur, page par page")}</li>
+                <li>{t("Le contrôle de vos documents et le verdict")}</li>
+                <li>{t("La méthodologie rédigée avec vos chantiers")}</li>
+                <li>{t("Pli pour répondre à vos questions")}</li>
+                <li>{t("Un accompagnement sur votre premier dossier")}</li>
               </ul>
               <a href="#/inscription" className="v2-btn v2-btn-brand v2-btn-block">
-                Commencer un dossier
+                {t("Commencer un dossier")}
               </a>
             </div>
             <div className="v2-price-card" data-reveal style={{ "--d": 1 }}>
-              <p className="v2-price-name">Abonnement</p>
-              <p className="v2-price-amount sm">3 dossiers / mois</p>
-              <p className="v2-price-sub">Pour les entreprises qui répondent chaque semaine. Tarif sur demande.</p>
+              <p className="v2-price-name">{t("Abonnement")}</p>
+              <p className="v2-price-amount sm">{t("3 dossiers / mois")}</p>
+              <p className="v2-price-sub">{t("Pour les entreprises qui répondent chaque semaine. Tarif sur demande.")}</p>
               <ul>
-                <li>Tout ce que comprend l'offre par dossier</li>
-                <li>Vos documents suivis en continu</li>
+                <li>{t("Tout ce que comprend l'offre par dossier")}</li>
+                <li>{t("Vos documents suivis en continu")}</li>
               </ul>
               <a href={`mailto:${CONTACT_EMAIL}?subject=Abonnement%20MemoPli`} className="v2-btn v2-btn-ghost v2-btn-block">
-                Nous contacter
+                {t("Nous contacter")}
               </a>
             </div>
           </div>
           <p className="v2-price-foot" data-reveal>
-            À titre de comparaison, un cabinet qui monte le dossier pour vous facture 300 000 à 500 000 FCFA.
+            {t("À titre de comparaison, un cabinet qui monte le dossier pour vous facture 300 000 à 500 000 FCFA.")}
           </p>
         </section>
 
@@ -703,25 +719,24 @@ export default function Landing() {
         <section className="v2-dark">
           <div className="v2-wrap v2-dark-in">
             <div data-reveal>
-              <p className="v2-kicker v2-kicker-light">Accompagnement</p>
-              <h2>On vous accompagne sur le premier dossier.</h2>
+              <p className="v2-kicker v2-kicker-light">{t("Accompagnement")}</p>
+              <h2>{t("On vous accompagne sur le premier dossier.")}</h2>
               <p className="v2-sub">
-                Le premier dépôt est celui qui compte. Nous le préparons avec vous, puis vous êtes
-                autonome — avec Pli pour répondre à vos questions.
+                {t("Le premier dépôt est celui qui compte. Nous le préparons avec vous, puis vous êtes autonome — avec Pli pour répondre à vos questions.")}
               </p>
               <ul className="v2-dark-list">
                 <li>
-                  <span><Icon name="chat" /></span>Une assistance sur WhatsApp
+                  <span><Icon name="chat" /></span>{t("Une assistance sur WhatsApp")}
                 </li>
                 <li>
-                  <span><Icon name="shield" /></span>Un accompagnement sur votre premier dossier
+                  <span><Icon name="shield" /></span>{t("Un accompagnement sur votre premier dossier")}
                 </li>
                 <li>
-                  <span><Icon name="lock" /></span>Vos documents restent les vôtres
+                  <span><Icon name="lock" /></span>{t("Vos documents restent les vôtres")}
                 </li>
               </ul>
               <a href={`mailto:${CONTACT_EMAIL}?subject=D%C3%A9monstration%20MemoPli`} className="v2-btn v2-btn-light">
-                Demander une démonstration
+                {t("Demander une démonstration")}
               </a>
             </div>
             <div className="v2-chat" data-reveal>
@@ -732,19 +747,19 @@ export default function Landing() {
                     <Mascot size={34} animated={false} />
                   </span>
                   <div>
-                    <strong>Demander à Pli</strong>
+                    <strong>{t("Demander à Pli")}</strong>
                     <small>
-                      <i className="v2-online" /> lit le dossier
+                      <i className="v2-online" /> {t("lit le dossier")}
                     </small>
                   </div>
                 </div>
-                <div className="v2-msg me">Quelle garantie de soumission est demandée ?</div>
+                <div className="v2-msg me">{t("Quelle garantie de soumission est demandée ?")}</div>
                 <div className="v2-msg pli">
-                  2 % du montant estimé <span className="v2-cite">p. 3</span>, soit 25 000 000 FCFA{" "}
-                  <span className="v2-cite">p. 3</span>. Dépôt avant le 18 décembre 2026 à 10 h{" "}
+                  {t("2 % du montant estimé")} <span className="v2-cite">p. 3</span>{t(", soit 25 000 000 FCFA")}{" "}
+                  <span className="v2-cite">p. 3</span>{t(". Dépôt avant le 18 décembre 2026 à 10 h")}{" "}
                   <span className="v2-cite">p. 1</span>.
                 </div>
-                <div className="v2-chat-foot">Exemple · aucun de vos documents n'est envoyé</div>
+                <div className="v2-chat-foot">{t("Exemple · aucun de vos documents n'est envoyé")}</div>
               </div>
             </div>
           </div>
@@ -754,19 +769,19 @@ export default function Landing() {
         <section id="questions" className="v2-sec">
           <div className="v2-wrap v2-faq">
             <div data-reveal>
-              <p className="v2-kicker">Questions</p>
-              <h2>Avant votre prochain dépôt.</h2>
+              <p className="v2-kicker">{t("Questions")}</p>
+              <h2>{t("Avant votre prochain dépôt.")}</h2>
               <PliSays mood="happy">
-                Encore un doute ?{" "}
+                {t("Encore un doute ?")}{" "}
                 <a className="v2-underline" href={`mailto:${CONTACT_EMAIL}`}>
-                  Écrivez-nous
+                  {t("Écrivez-nous")}
                 </a>
-                , ou posez-moi la question dans votre dossier.
+                {t(", ou posez-moi la question dans votre dossier.")}
               </PliSays>
             </div>
             <div className="v2-faq-chat rui" data-reveal>
               <Faq
-                items={FAQ.map((f, i) => ({ id: `q${i}`, question: f.q, answer: f.a }))}
+                items={FAQ.map((f, i) => ({ id: `q${i}`, question: t(f.q), answer: t(f.a) }))}
                 defaultValue="q0"
                 accent="#2b3ae0"
                 avatar={<Mascot size={30} animated={false} />}
@@ -782,14 +797,14 @@ export default function Landing() {
               <Mascot size={170} />
             </span>
             <h2>
-              Le dossier est complet. <span className="v2-grad v2-grad-light">Le dépôt est serein.</span>
+              {t("Le dossier est complet.")} <span className="v2-grad v2-grad-light">{t("Le dépôt est serein.")}</span>
             </h2>
             <div className="v2-final-btns">
               <a href="#/inscription" className="v2-btn v2-btn-brand v2-btn-lg">
-                Commencer un dossier <Icon name="arrow" size={16} />
+                {t("Commencer un dossier")} <Icon name="arrow" size={16} />
               </a>
               <a href="#/connexion" className="v2-btn v2-btn-ghost v2-btn-lg">
-                J'ai déjà un compte
+                {t("J'ai déjà un compte")}
               </a>
             </div>
           </div>
@@ -803,31 +818,31 @@ export default function Landing() {
               <Mark size={28} />
               <Wordmark />
             </a>
-            <p>Le poste de travail des appels d'offres pour les PME du Bénin.</p>
+            <p>{t("Le poste de travail des appels d'offres pour les PME du Bénin.")}</p>
           </div>
-          <nav aria-label="Produit">
-            <b>Produit</b>
-            <a href="#parcours" onClick={go("parcours")}>Le parcours</a>
-            <a href="#garanties" onClick={go("garanties")}>Garanties</a>
-            <a href="#tarif" onClick={go("tarif")}>Tarif</a>
-            <a href="#questions" onClick={go("questions")}>Questions</a>
+          <nav aria-label={t("Produit")}>
+            <b>{t("Produit")}</b>
+            <a href="#parcours" onClick={go("parcours")}>{t("Le parcours")}</a>
+            <a href="#garanties" onClick={go("garanties")}>{t("Garanties")}</a>
+            <a href="#tarif" onClick={go("tarif")}>{t("Tarif")}</a>
+            <a href="#questions" onClick={go("questions")}>{t("Questions")}</a>
           </nav>
-          <nav aria-label="Commencer">
-            <b>Commencer</b>
-            <a href="#/inscription">Créer un compte</a>
-            <a href="#/connexion">Se connecter</a>
-            <a href={`mailto:${CONTACT_EMAIL}?subject=D%C3%A9monstration%20MemoPli`}>Demander une démonstration</a>
+          <nav aria-label={t("Commencer")}>
+            <b>{t("Commencer")}</b>
+            <a href="#/inscription">{t("Créer un compte")}</a>
+            <a href="#/connexion">{t("Se connecter")}</a>
+            <a href={`mailto:${CONTACT_EMAIL}?subject=D%C3%A9monstration%20MemoPli`}>{t("Demander une démonstration")}</a>
           </nav>
-          <nav aria-label="Contact">
-            <b>Contact</b>
+          <nav aria-label={t("Contact")}>
+            <b>{t("Contact")}</b>
             <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
-            <span>Cotonou, Bénin</span>
-            <span>Assistance sur WhatsApp</span>
+            <span>{t("Cotonou, Bénin")}</span>
+            <span>{t("Assistance sur WhatsApp")}</span>
           </nav>
         </div>
         <div className="v2-wrap v2-foot-bottom">
-          <span>© {new Date().getFullYear()} MemoPli. Chiffres : ADPME Bénin ; ARMP, novembre 2026.</span>
-          <span>Mise en page inspirée de « mesa » par LN (MIT) · composants animés <a href="https://rareui.com" target="_blank" rel="noreferrer">Rare UI</a>.</span>
+          <span>{t("© {annee} MemoPli. Chiffres : ADPME Bénin ; ARMP, novembre 2026.", { annee: new Date().getFullYear() })}</span>
+          <span>{t("Mise en page inspirée de « mesa » par LN (MIT) · composants animés")} <a href="https://rareui.com" target="_blank" rel="noreferrer">Rare UI</a>.</span>
         </div>
         <div className="v2-giant-wrap">
           <Halftone colors={DOTS.cream} cell={6} shape="text" text="memopli" speed={0.4} className="v2-giant" />
@@ -839,7 +854,7 @@ export default function Landing() {
 
       {/* navigation de sections flottante, mobile uniquement (Rare UI) */}
       <div className="rui v2-sections">
-        <ScrollProgress sections={NAV.map(([id, label]) => ({ id, label }))} />
+        <ScrollProgress sections={NAV.map(([id, label]) => ({ id, label: t(label) }))} />
       </div>
     </div>
   );

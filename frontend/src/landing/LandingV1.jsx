@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Mark, Wordmark } from "../components/brand/Logo.jsx";
 import Mascot from "../components/brand/Mascot.jsx";
 import AnimatedCounter from "../components/ui/animated-counter.tsx";
+import { useT } from "./i18n.js";
 
 // Page publique, destinée aux clients. Elle ne parle que de leur problème :
 // pas de modèle, pas de coût d'API, pas de jargon. Chaque chiffre a sa source
@@ -41,14 +42,15 @@ export const GLOSSARY = {
 };
 
 export function Term({ k, children }) {
-  const t = GLOSSARY[k];
+  const terme = GLOSSARY[k];
+  const t = useT();
   const id = `term-${k}`;
   return (
     <span className="term" tabIndex={0} aria-describedby={id}>
       {children}
       <span className="term-tip" role="tooltip" id={id}>
-        <b>{t.name}</b>
-        {t.def}
+        <b>{t(terme.name)}</b>
+        {t(terme.def)}
       </span>
     </span>
   );
@@ -529,6 +531,7 @@ function Journey() {
 
 export function VerdictToggle({ onChange }) {
   const [replaced, setReplaced] = useState(false);
+  const t = useT();
   useEffect(() => {
     onChange?.(replaced);
   }, [replaced, onChange]);
@@ -543,22 +546,22 @@ export function VerdictToggle({ onChange }) {
         {pieces.map((p) => (
           <li key={p.label} className={p.ok ? "" : "bad"}>
             <span className={`demo-dot ${p.ok ? "valide" : "perime"}`} />
-            <span className="vt-label">{p.label}</span>
+            <span className="vt-label">{t(p.label)}</span>
             <span className="demo-page">p. {p.page}</span>
-            <b className={`demo-badge ${p.ok ? "valide" : "perime"}`}>{p.ok ? "valide" : "expirée"}</b>
+            <b className={`demo-badge ${p.ok ? "valide" : "perime"}`}>{t(p.ok ? "valide" : "expirée")}</b>
           </li>
         ))}
       </ul>
       <div className={`vt-verdict ${replaced ? "ok" : "ko"}`} aria-live="polite">
-        <strong>{replaced ? "Prêt à déposer" : "Pas prêt"}</strong>
-        <span>{replaced ? "Aucun blocage. Le bouton se libère." : "1 blocage : Attestation CNSS expirée."}</span>
+        <strong>{t(replaced ? "Prêt à déposer" : "Pas prêt")}</strong>
+        <span>{t(replaced ? "Aucun blocage. Le bouton se libère." : "1 blocage : Attestation CNSS expirée.")}</span>
       </div>
       <div className="vt-actions">
         <button type="button" className="btn btn-light" onClick={() => setReplaced((r) => !r)}>
-          {replaced ? "Revenir au document expiré" : "Remplacer l'attestation CNSS"}
+          {t(replaced ? "Revenir au document expiré" : "Remplacer l'attestation CNSS")}
         </button>
         <button type="button" className="btn btn-submit" disabled={!replaced}>
-          Prêt à déposer
+          {t("Prêt à déposer")}
         </button>
       </div>
     </div>
