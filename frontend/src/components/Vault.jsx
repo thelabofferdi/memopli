@@ -15,7 +15,16 @@ function validityText(piece) {
   return `valable jusqu'au ${when}`;
 }
 
-export default function Vault({ pieces, busy, onAdd, onRemove, onReplace }) {
+const FILTERS = [
+  ["tous", "Tous"],
+  ["traiter", "À traiter"],
+  ["valides", "Valides"],
+];
+
+// Deux colonnes sur grand écran : à gauche (fixe) le dossier type et l'ajout,
+// à droite la liste, qui est ce qu'on consulte le plus. Empilé sur mobile.
+export default function Vault({ pieces, busy, onAdd, onRemove, onReplace, side }) {
+  const [filter, setFilter] = useState("tous");
   const [form, setForm] = useState(EMPTY_ADD);
   const [replacing, setReplacing] = useState(null);
   const [replacement, setReplacement] = useState({ expires_on: "", file: null });
@@ -52,18 +61,20 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace }) {
     });
   };
 
+  const shown = pieces.filter((p) =>
+    filter === "tous" ? true : filter === "valides" ? pieceStatus(p) === "valide" : pieceStatus(p) !== "valide",
+  );
+  const counts = { tous: pieces.length, traiter: alerts, valides: pieces.length - alerts };
+
   return (
-    <Section
-      id="coffre"
-      title="Vos documents"
-      lede="Ajoutez chaque document avec sa date de fin de validité. Sans date, il reste « à vérifier » ; une fois expiré, il compte comme manquant."
-      aside={
-        <span className="note">
-          {pieces.length} document{pieces.length > 1 ? "s" : ""}
-          {alerts > 0 && <strong className="warn"> · {alerts} à traiter</strong>}
-        </span>
-      }
-    >
+    <div className="vault-layout">
+      <div className="vault-side">
+        {side}
+        <Section
+          id="ajout"
+          title="Ajouter un document"
+          lede="Avec sa date de fin de validité : sans date, il reste « à vérifier » ; une fois expiré, il compte comme manquant."
+        >
       <form className="form form-add" onSubmit={submit}>
         <label className="field">
           <span>Type</span>
@@ -99,6 +110,42 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace }) {
           </button>
         </div>
       </form>
+        </Section>
+      </div>
+
+      <Section
+        id="coffre"
+        title="Vos documents"
+        aside={
+          <span className="note">
+            {pieces.length} document{pieces.length > 1 ? "s" : ""}
+            {alerts > 0 && <strong className="warn"> · {alerts} à traiter</strong>}
+            <button
+              type="button"
+              className="ghost small vault-jump"
+              onClick={() => document.getElementById("ajout")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            >
+              + Ajouter
+            </button>
+          </span>
+        }
+      >
+      {pieces.length > 0 && (
+        <div className="vault-filters" role="tablist" aria-label="Filtrer les documents">
+          {FILTERS.map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={filter === k}
+              className={filter === k ? "vf on" : "vf"}
+              onClick={() => setFilter(k)}
+            >
+              {label} <span>{counts[k]}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {pieces.length === 0 ? (
         <Empty>
@@ -107,7 +154,8 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace }) {
         </Empty>
       ) : (
         <ul className="list">
-          {pieces.map((piece) => {
+          {shown.length === 0 && <li className="vault-none">Aucun document dans ce filtre.</li>}
+          {shown.map((piece) => {
             const status = pieceStatus(piece);
             const open = replacing === piece.id;
             return (
@@ -171,6 +219,7 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace }) {
           })}
         </ul>
       )}
-    </Section>
+      </Section>
+    </div>
   );
 }

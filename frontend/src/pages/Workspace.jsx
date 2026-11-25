@@ -238,8 +238,14 @@ export default function Workspace({ path }) {
           tip="Indiquez la date de fin de chaque document : je vous préviens avant qu'il n'expire."
           mood="think"
         />
-        <DocChecklist pieces={pieces} />
-        <Vault pieces={pieces} busy={busy} onAdd={addPiece} onRemove={removePiece} onReplace={replacePiece} />
+        <Vault
+          pieces={pieces}
+          busy={busy}
+          onAdd={addPiece}
+          onRemove={removePiece}
+          onReplace={replacePiece}
+          side={<DocChecklist pieces={pieces} />}
+        />
       </>
     );
   } else if (route.startsWith("/app/entreprise")) {

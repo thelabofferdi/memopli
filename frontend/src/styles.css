@@ -2724,3 +2724,35 @@ button.btn-glass:hover:not(:disabled) { background: rgba(255, 255, 255, 0.14); }
 .side .alerts-pop { position: fixed; top: var(--s5); left: calc(264px + var(--s2)); }
 .side { z-index: 30; }
 @media (max-width: 960px) { .side { z-index: 60; } }
+
+/* --- Mes documents : deux colonnes sur grand écran */
+.ws-content:has(.vault-layout) { max-width: 1240px; }
+.vault-layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: var(--s5); align-items: start; }
+.vault-side { position: sticky; top: var(--s5); display: grid; gap: var(--s5); max-height: calc(100vh - 2 * var(--s5)); overflow-y: auto; scrollbar-width: thin; }
+.vault-side .panel { padding: var(--s5); }
+.vault-side .form { grid-template-columns: minmax(0, 1fr); gap: var(--s3); }
+.vault-side .form-actions button { width: 100%; }
+.vault-side .doccheck-head { gap: var(--s4); }
+.vault-side .doccheck-head h2 { font-size: 17px; }
+.vault-side .doccheck-list { grid-template-columns: minmax(0, 1fr); gap: var(--s1); margin-top: var(--s4); }
+.vault-side .doccheck-list li { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto; padding: var(--s2) var(--s3); }
+.vault-side .doccheck-list li > :first-child { grid-row: auto; }
+.vault-side .panel-lede { font-size: 14px; }
+.vault-filters { display: flex; flex-wrap: wrap; gap: var(--s2); }
+button.vf { height: 34px; padding: 0 var(--s3); border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--muted); font-size: 13px; font-weight: 600; }
+button.vf:hover:not(:disabled) { background: var(--paper); border-color: var(--ink); color: var(--ink); }
+button.vf span { margin-left: var(--s1); padding: 0 6px; border-radius: 999px; background: var(--cream-2); color: var(--ink); font-size: 12px; }
+button.vf.on, button.vf.on:hover:not(:disabled) { background: var(--ink); border-color: var(--ink); color: #fff; }
+button.vf.on span { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.vault-none { padding: var(--s5) 0; color: var(--muted); font-size: 14px; }
+.vault-jump { display: none; }
+@media (max-width: 1180px) {
+  .vault-layout { grid-template-columns: minmax(0, 1fr); }
+  /* empilé : dossier type, puis la liste, puis le formulaire d'ajout */
+  .vault-side { display: contents; }
+  .vault-side .doccheck { order: 1; }
+  .vault-layout > #coffre { order: 2; }
+  .vault-side #ajout { order: 3; }
+  .vault-jump { display: inline-flex; margin-left: var(--s3); }
+  .vault-side .doccheck-list { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+}
