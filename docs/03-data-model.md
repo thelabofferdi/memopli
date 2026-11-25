@@ -27,10 +27,11 @@ CREATE TABLE tenders (                -- le DAO déposé
   org_id      TEXT NOT NULL REFERENCES organizations(id),
   title       TEXT,
   buyer       TEXT,
-  deadline    TEXT,
+  deadline    TEXT,                   -- AAAA-MM-JJ : date de référence du verdict
   file_path   TEXT,
   text_path   TEXT,                   -- texte extrait
   page_count  INTEGER,
+  source      TEXT,                   -- pdf | ocr : d'où vient le texte
   created_at  TEXT NOT NULL
 );
 
@@ -45,6 +46,7 @@ CREATE TABLE requirements (
   excerpt     TEXT,                   -- extrait justificatif
   confidence  REAL,
   corrected   INTEGER NOT NULL DEFAULT 0,
+  to_check    INTEGER NOT NULL DEFAULT 0,  -- page ou extrait non confirmé par le code
   created_at  TEXT NOT NULL
 );
 
@@ -52,8 +54,9 @@ CREATE TABLE matches (
   id            TEXT PRIMARY KEY,
   requirement_id TEXT NOT NULL REFERENCES requirements(id),
   piece_id      TEXT REFERENCES pieces(id),
+  -- historique du rapprochement : le verdict est recalculé à la lecture (app/state.py)
   status        TEXT NOT NULL,        -- valide | perime | manquant | a_verifier
-  reason        TEXT,
+  reason        TEXT,                 -- dont la raison d'un refus de type, réaffichée au verdict
   created_at    TEXT NOT NULL
 );
 
@@ -71,11 +74,19 @@ CREATE TABLE drafts (
 
 ## Règles de statut (calculées en code)
 
+La date de référence est la plus tardive entre aujourd'hui et `tenders.deadline` : le bailleur
+juge la pièce le jour du dépôt (`app/state.py: reference_date`). `matches.status` n'est qu'un
+historique ; `state.readiness` recalcule le statut à chaque lecture.
+
 | Situation | `status` |
 |---|---|
-| pièce liée, date future | `valide` |
-| pièce liée, date passée | `perime` |
-| pièce liée, pas de date déclarée | `a_verifier` |
+| pièce liée, valable à la date de référence | `valide` |
+| pièce liée, date expirée avant la date de référence | `perime` |
+| pièce liée, pas de date déclarée ou date illisible | `a_verifier` |
 | aucune pièce liée | `manquant` |
 
 Le dossier est `prêt` si aucune exigence `mandatory` n'est `manquant` ou `perime`.
+
+Colonnes ajoutées après coup : `organizations.user_id`, `tenders.source`,
+`requirements.to_check`. `init_db()` les crée sur une base existante (`db._ensure_column`),
+sans migration manuelle.

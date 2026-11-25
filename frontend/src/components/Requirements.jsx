@@ -87,6 +87,11 @@ function RequirementRow({ req, edit, busy, onStart, onCancel, onSave, setEdit })
           <span className="meta">
             <Source page={req.page} />
             {req.weight ? <span className="weight">{pct(req.weight)} % de la note</span> : null}
+            {req.to_check && !req.corrected ? (
+              <span className="warn" title="Le logiciel n'a pas retrouvé cet extrait à la page indiquée.">
+                à vérifier
+              </span>
+            ) : null}
             {req.corrected ? <span className="corrected">corrigée par vous</span> : null}
           </span>
           {req.excerpt && <blockquote>{req.excerpt}</blockquote>}
@@ -104,13 +109,14 @@ function RequirementRow({ req, edit, busy, onStart, onCancel, onSave, setEdit })
   );
 }
 
-export default function Requirements({ reqs, busy, stale, onCorrect , step }) {
+export default function Requirements({ reqs, busy, stale, onCorrect, step, reading }) {
   const [editing, setEditing] = useState(null); // { id, form }
 
   const pieces = reqs.filter((r) => r.kind === "piece");
   const criteres = reqs.filter((r) => r.kind === "critere");
   const mandatory = reqs.filter((r) => r.mandatory).length;
   const withoutPage = reqs.filter((r) => r.page === null || r.page === undefined).length;
+  const toCheck = reqs.filter((r) => r.to_check && !r.corrected).length;
 
   const handlers = {
     busy,
@@ -141,12 +147,13 @@ export default function Requirements({ reqs, busy, stale, onCorrect , step }) {
       id="exigences"
       step={step}
       title="Ce que demande l'acheteur"
-      lede="Chaque ligne indique sa page dans le dossier. Une ligne sans page est signalée. Si une ligne est fausse, corrigez-la : votre correction prime."
+      lede="Chaque ligne indique sa page dans le dossier. Une ligne sans page, ou dont l'extrait est introuvable à cette page, est signalée « à vérifier ». Si une ligne est fausse, corrigez-la : votre correction prime."
       aside={
         reqs.length > 0 ? (
           <span className="note">
             {reqs.length} ligne{reqs.length > 1 ? "s" : ""} · {mandatory} obligatoire{mandatory > 1 ? "s" : ""}
             {withoutPage > 0 && <strong className="warn"> · {withoutPage} sans page</strong>}
+            {toCheck > withoutPage && <strong className="warn"> · {toCheck - withoutPage} à vérifier</strong>}
           </span>
         ) : null
       }
@@ -155,6 +162,13 @@ export default function Requirements({ reqs, busy, stale, onCorrect , step }) {
         <Empty>Aucune exigence pour l'instant. Déposez le dossier d'appel d'offres, puis lancez « Relever les exigences ».</Empty>
       ) : (
         <>
+          {reading?.tronque && (
+            <p className="callout warn" role="alert">
+              Le dossier est long : seules les pages 1 à {reading.derniere_page_lue ?? "?"} sur{" "}
+              {reading.pages_total ?? "?"} ont été lues. Les exigences des pages suivantes ne sont pas
+              relevées — ajoutez-les à la main ou découpez le dossier.
+            </p>
+          )}
           {stale && (
             <p className="callout warn">
               Vous avez modifié une exigence depuis la dernière vérification : vérifiez à nouveau

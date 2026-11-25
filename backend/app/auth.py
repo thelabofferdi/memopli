@@ -20,7 +20,7 @@ from . import ratelimit
 from .config import settings
 from .db import connect, rows
 from .errors import abort
-from .ids import epoch, nid, stamp, today
+from .ids import epoch, nid, stamp
 
 ITERATIONS = 240_000
 MIN_PASSWORD = 8
@@ -148,7 +148,7 @@ def create_account(email: str, password: str, org_name: str | None) -> dict:
             conn.execute(
                 "INSERT INTO organizations(id,user_id,name,ifu,rccm,sector,headcount,created_at)"
                 " VALUES (?,?,?,?,?,?,?,?)",
-                (oid, uid, org_name.strip(), None, None, None, None, today()),
+                (oid, uid, org_name.strip(), None, None, None, None, stamp()),
             )
             org = {"id": oid, "name": org_name.strip()}
     session = create_session(uid)

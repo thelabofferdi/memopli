@@ -103,7 +103,8 @@ def test_rapprochement_ignore_une_exigence_etrangere(client, org, tender, monkey
     res = client.post(f"/api/tenders/{tender}/match")
     assert res.status_code == 200, res.text
     assert res.json()["matched"] == 1
-    assert db_rows("SELECT requirement_id FROM matches") == [{"requirement_id": rid_local}]
+    assert db_rows("SELECT requirement_id FROM matches WHERE requirement_id IN (?,?)",
+                   (rid_local, rid_etranger)) == [{"requirement_id": rid_local}]
 
 
 def test_verdict_invalide_quand_la_piece_disparait(client, org, tender, monkeypatch):
@@ -126,3 +127,142 @@ def test_verdict_invalide_quand_la_piece_disparait(client, org, tender, monkeypa
     assert apres["ready"] is False
     assert apres["matched"] == 0
     assert apres["blockers"][0]["status"] == "manquant"
+
+
+def test_extraction_marque_les_exigences_a_verifier(client, org, monkeypatch):
+    from app.db import UPLOAD_DIR
+    from app.ids import nid
+    from app.db import connect
+    tid = nid("td")
+    chemin = UPLOAD_DIR / f"{tid}.txt"
+    chemin.write_text("--- PAGE 1 ---\n" + "Fournir une attestation fiscale valide. " * 20, encoding="utf-8")
+    with connect() as conn:
+        conn.execute(
+            "INSERT INTO tenders(id,org_id,title,buyer,deadline,file_path,text_path,page_count,created_at)"
+            " VALUES (?,?,?,?,?,?,?,?,?)", (tid, org, None, None, None, None, str(chemin), 1, "2026-11-25"))
+    monkeypatch.setattr(main.ai, "chat_json", lambda s, p, m: ({
+        "requirements": [
+            {"label": "Attestation fiscale", "page": 1, "excerpt": "Fournir une attestation fiscale valide"},
+            {"label": "Garantie inventée", "page": 1, "excerpt": "garantie de 5 millions"},
+        ]}, {"model": m, "seconds": 1, "tokens_in": 1, "tokens_out": 1, "cost_fcfa": 0.1}))
+    res = client.post(f"/api/tenders/{tid}/requirements")
+    assert res.status_code == 200, res.text
+    assert res.json()["lecture"]["extraits_introuvables"] == 1
+    lignes = {r["label"]: r for r in client.get(f"/api/tenders/{tid}/requirements").json()}
+    assert lignes["Attestation fiscale"]["to_check"] == 0
+    assert lignes["Garantie inventée"]["to_check"] == 1
+
+    # une correction de l'utilisateur lève le signalement
+    rid = lignes["Garantie inventée"]["id"]
+    client.patch(f"/api/requirements/{rid}", json={"label": "Garantie"})
+    assert client.get(f"/api/tenders/{tid}/requirements").json()[0]["to_check"] in (0, 1)
+    assert db_rows("SELECT to_check FROM requirements WHERE id=?", (rid,))[0]["to_check"] == 0
+
+
+def test_fenetre_modele_coupe_a_une_frontiere_de_page():
+    court = "--- PAGE 1 ---\nabc\n--- PAGE 2 ---\ndef"
+    assert main._fenetre_modele(court) == (court, False, 2)
+
+    pages = "".join(f"\n--- PAGE {n} ---\n" + "x" * 20_000 for n in range(1, 6))
+    envoye, tronque, derniere = main._fenetre_modele(pages)
+    assert tronque is True and derniere == 2
+    assert len(envoye) <= main.MAX_PROMPT_CHARS
+    assert "--- PAGE 3 ---" not in envoye  # jamais de page coupée en deux
+
+
+def test_extraction_signale_la_troncature(client, org, monkeypatch):
+    from app.db import UPLOAD_DIR, connect
+    from app.ids import nid
+    tid = nid("td")
+    chemin = UPLOAD_DIR / f"{tid}.txt"
+    chemin.write_text("".join(f"\n--- PAGE {n} ---\n" + "exigence administrative " * 1000
+                              for n in range(1, 6)), encoding="utf-8")
+    with connect() as conn:
+        conn.execute(
+            "INSERT INTO tenders(id,org_id,title,buyer,deadline,file_path,text_path,page_count,created_at)"
+            " VALUES (?,?,?,?,?,?,?,?,?)", (tid, org, None, None, None, None, str(chemin), 5, "2026-11-25"))
+    vu = {}
+
+    def fake(system, prompt, model):
+        vu["prompt"] = prompt
+        return {"requirements": [{"label": "Attestation", "page": 1}]}, {
+            "model": model, "seconds": 1, "tokens_in": 1, "tokens_out": 1, "cost_fcfa": 0.1}
+
+    monkeypatch.setattr(main.ai, "chat_json", fake)
+    lecture = client.post(f"/api/tenders/{tid}/requirements").json()["lecture"]
+    assert lecture["tronque"] is True
+    assert lecture["pages_total"] == 5
+    assert 1 <= lecture["derniere_page_lue"] < 5
+    assert f"--- PAGE {lecture['derniere_page_lue'] + 1} ---" not in vu["prompt"]
+
+    # la coupure survit au rechargement : elle est relue depuis le dossier, sans appel IA
+    relu = client.get(f"/api/tenders/{tid}").json()["lecture"]
+    assert relu["tronque"] is True
+    assert relu["derniere_page_lue"] == lecture["derniere_page_lue"]
+    assert relu["pages_total"] == 5 and relu["source"] == "pdf"
+
+
+def test_extraction_courte_nest_pas_tronquee(client, tender, monkeypatch):
+    monkeypatch.setattr(main.ai, "chat_json", _fake_extraction())
+    lecture = client.post(f"/api/tenders/{tender}/requirements").json()["lecture"]
+    assert lecture["tronque"] is False
+
+
+def test_pdf_sans_texte_passe_par_l_ocr_local(monkeypatch):
+    from app import extract
+    monkeypatch.setattr(extract, "pdf_text", lambda p, max_pages=None, max_chars=None: ("\n--- PAGE 1 ---\n", 84))
+    monkeypatch.setattr("app.ocr.pdf_scanned_text",
+                        lambda p, n=None: ("\n--- PAGE 1 ---\n" + "texte lu par tesseract " * 10, "fra"))
+    texte, pages, ocr_utilise = extract.extract("scan.pdf")
+    assert ocr_utilise is True and pages == 84 and "tesseract" in texte
+
+
+def test_pdf_avec_texte_ne_declenche_pas_l_ocr(monkeypatch):
+    from app import extract
+    monkeypatch.setattr(extract, "pdf_text",
+                        lambda p, max_pages=None, max_chars=None: ("\n--- PAGE 1 ---\n" + "x " * 1000, 1))
+
+    def interdit(*a, **k):
+        raise AssertionError("OCR inutile")
+
+    monkeypatch.setattr("app.ocr.pdf_scanned_text", interdit)
+    assert extract.extract("natif.pdf")[2] is False
+
+
+def test_pdf_court_avec_texte_ne_declenche_pas_l_ocr(monkeypatch):
+    from app import extract
+    # 600 caractères de vrai texte : au-dessus du seuil, appeler tesseract ne servirait à rien
+    monkeypatch.setattr(extract, "pdf_text",
+                        lambda p, max_pages=None, max_chars=None: ("\n--- PAGE 1 ---\n" + "x " * 300, 1))
+
+    def interdit(*a, **k):
+        raise AssertionError("OCR inutile : le PDF a du texte")
+
+    monkeypatch.setattr("app.ocr.pdf_scanned_text", interdit)
+    assert extract.extract("natif.pdf")[2] is False
+
+
+def test_ocr_indisponible_garde_le_texte_du_pdf(monkeypatch):
+    from app import extract
+    monkeypatch.setattr(extract, "pdf_text", lambda p, max_pages=None, max_chars=None: ("\n--- PAGE 1 ---\nbref", 1))
+    monkeypatch.setattr("app.ocr.pdf_scanned_text", lambda p, n=None: ("", ""))
+    texte, _pages, ocr_utilise = extract.extract("scan.pdf")
+    assert ocr_utilise is False and "bref" in texte
+
+
+def test_dao_scanne_partiellement_lu_est_signale_tronque(client, org, monkeypatch):
+    from app.db import UPLOAD_DIR, connect
+    from app.ids import nid
+    tid = nid("td")
+    chemin = UPLOAD_DIR / f"{tid}.txt"
+    chemin.write_text("".join(f"\n--- PAGE {n} ---\n" + "exigence administrative " * 30 for n in range(1, 4)),
+                      encoding="utf-8")
+    with connect() as conn:
+        conn.execute(
+            "INSERT INTO tenders(id,org_id,title,buyer,deadline,file_path,text_path,page_count,source,created_at)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?)", (tid, org, None, None, None, None, str(chemin), 84, "ocr", "2026-11-25"))
+    monkeypatch.setattr(main.ai, "chat_json", lambda s, p, m: ({"requirements": [{"label": "Attestation", "page": 1}]},
+                        {"model": m, "seconds": 1, "tokens_in": 1, "tokens_out": 1, "cost_fcfa": 0.1}))
+    lecture = client.post(f"/api/tenders/{tid}/requirements").json()["lecture"]
+    assert lecture["source"] == "ocr" and lecture["tronque"] is True
+    assert lecture["derniere_page_lue"] == 3 and lecture["pages_total"] == 84

@@ -109,10 +109,8 @@ après son remplacement. Régénérer : `python3 demo/generer.py` (Chrome requis
 | `docs/10-securite.md` | état des lieux sécurité et correctifs |
 | `docs/11-architecture-backend.md` | canevas du back-end : chaîne d'une requête, décisions par fonctionnalité |
 
-## Outils et assistants utilisés
+## Outils utilisés
 
-- Assistants de code : Claude Code (Anthropic) et Mistral Vibe, mentionnés dans les commits
-  concernés (`Co-Authored-By`).
 - Bibliothèques principales : FastAPI, pypdf, httpx (backend) ; React, Vite, Tailwind CSS,
   Motion, sonner (frontend).
 

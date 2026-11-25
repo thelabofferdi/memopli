@@ -72,11 +72,11 @@ jamais `403`, pour ne pas révéler son existence.
 | GET | `/api/pieces?org_id=` | lister les pièces | — |
 | DELETE | `/api/pieces/{id}` | supprimer une pièce (fichier et rapprochements compris) | — |
 | POST | `/api/tenders` | déposer un DAO (multipart : `org_id`, `file`) → texte extrait | upload |
-| GET | `/api/tenders/{id}` | métadonnées du DAO | — |
+| GET | `/api/tenders/{id}` | métadonnées du DAO et état de lecture (`lecture` : `tronque`, `derniere_page_lue`, `pages_total`, `source`) | — |
 | POST | `/api/tenders/{id}/requirements` | lancer l'extraction | IA |
-| GET | `/api/tenders/{id}/requirements` | lister les exigences | — |
-| PATCH | `/api/requirements/{id}` | corriger `label`, `kind`, `mandatory`, `weight`, `page`, `excerpt` | — |
-| POST | `/api/tenders/{id}/match` | rapprocher exigences ↔ pièces | IA |
+| GET | `/api/tenders/{id}/requirements` | lister les exigences (dont `to_check`) | — |
+| PATCH | `/api/requirements/{id}` | corriger `label`, `kind`, `mandatory`, `weight`, `page`, `excerpt` ; une correction lève `to_check` | — |
+| POST | `/api/tenders/{id}/match` | rapprocher exigences ↔ pièces → `{matched, refused, meta}` | IA |
 | GET | `/api/tenders/{id}/readiness` | `{ready, blockers, checked, matched}` | — |
 | POST | `/api/tenders/{id}/draft` | générer une section (`{section}`) | IA |
 | GET | `/api/tenders/{id}/drafts` | lister les sections générées | — |
@@ -91,6 +91,19 @@ jamais `403`, pour ne pas révéler son existence.
 Types de pièce admis : `attestation_fiscale`, `cnss`, `rccm`, `reference`, `bilan`, `autre`.
 `expires_on` : `AAAA-MM-JJ`.
 
+Champs d'une exigence lus par l'écran : `id`, `label`, `kind` (`piece` | `critere`),
+`mandatory`, `weight` (points sur 100), `page`, `excerpt`, `confidence`, `corrected`, et
+`to_check` — décidé par le code, jamais par le modèle : page absente ou hors document, extrait
+introuvable à la page citée. Une ligne `to_check` s'affiche « à vérifier » ; `PATCH` la lève.
+
+`GET /api/tenders/{id}` → le même `lecture` que l'extraction, recalculé depuis le texte
+conservé (aucun appel IA) : un DAO coupé le reste après rechargement de l'écran.
+
+```json
+{ "id": "td_7c1e…", "page_count": 84, "deadline": "2026-12-18", "source": "ocr",
+  "lecture": { "source": "ocr", "tronque": true, "derniere_page_lue": 10, "pages_total": 84 } }
+```
+
 ## Exemples
 
 `POST /api/tenders` → 
@@ -103,14 +116,29 @@ Types de pièce admis : `attestation_fiscale`, `cnss`, `rccm`, `reference`, `bil
 
 `POST /api/tenders/{id}/requirements` → **relancer remplace la grille**, elle ne s'empile pas.
 `lecture` dit ce que la réponse du modèle a coûté : exigences écartées, pages hors document
-(la page est alors `null`, jamais devinée) et doublons supprimés.
+(la page est alors `null`, jamais devinée), extraits introuvables et doublons supprimés.
+`tronque` et `derniere_page_lue` disent jusqu'où le document a été lu : au-delà de 60 000
+caractères, le modèle ne voit pas les pages suivantes, et l'écran doit le dire.
 
 ```json
 { "count": 12, "replaced": true, "title": "Réhabilitation voirie", "buyer": "Mairie de X",
   "deadline": "2026-12-18",
-  "lecture": { "ignorees": 0, "sans_page": 0, "pages_hors_document": 1, "doublons": 4 },
+  "lecture": { "ignorees": 0, "sans_page": 0, "pages_hors_document": 1, "sans_extrait": 0,
+               "extraits_introuvables": 1, "a_verifier": 2, "doublons": 4,
+               "source": "pdf", "tronque": false, "derniere_page_lue": 84, "pages_total": 84 },
   "meta": { "model": "anthropic/claude-haiku-4-5-20251001", "seconds": 12.9,
             "tokens_in": 1741, "tokens_out": 1509, "cost_fcfa": 11.14 } }
+```
+
+`POST /api/tenders/{id}/match` → seules les exigences `kind='piece'` partent au modèle.
+`refused` compte les couples que le code a écartés parce que le type de la pièce ne répond pas
+à l'intitulé de l'exigence (une attestation fiscale pour une exigence CNSS) ; le refus est
+journalisé et le blocage affiché dit « pièce du mauvais type : … ».
+
+```json
+{ "matched": 9, "refused": 1,
+  "meta": { "model": "google/gemini-3.5-flash-lite", "seconds": 6.2,
+            "tokens_in": 980, "tokens_out": 312, "cost_fcfa": 3.1 } }
 ```
 
 `POST /api/search` → `text` est le morceau entier (ce que lit l'agent), `extrait` les 400
@@ -135,12 +163,18 @@ par le code ; `pieces_envoyees` reste à `0` par construction :
   "contexte": { "morceaux": 3, "pieces_envoyees": 0 } }
 ```
 
-`GET /api/tenders/{id}/readiness` →
+`GET /api/tenders/{id}/readiness` → le statut est recalculé à chaque lecture, à la date où le
+bailleur jugera la pièce : la plus tardive entre aujourd'hui et la date limite du DAO. Une
+pièce valable aujourd'hui mais expirée avant le dépôt est donc `perime`.
 
 ```json
 { "ready": false, "checked": 6, "matched": 6,
   "blockers": [ { "requirement": "Attestation CNSS", "status": "perime",
-                  "reason": "expirée le 2026-09-30", "expires_on": "2026-09-30" } ] }
+                  "reason": "expirera le 30/09/2026, avant la date limite du 18/12/2026",
+                  "expires_on": "2026-09-30" },
+                { "requirement": "Attestation de régularité fiscale", "status": "manquant",
+                  "reason": "pièce du mauvais type : Attestation CNSS 2026",
+                  "expires_on": null } ] }
 ```
 
 `GET /api/tenders/{id}/cost` →

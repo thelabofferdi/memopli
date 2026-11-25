@@ -16,12 +16,16 @@ const PLACEHOLDERS = {
 
 const EMPTY_ADD = { kind: "attestation_fiscale", label: "", expires_on: "", file: null };
 
-function validityText(piece) {
+function validityText(piece, deadline) {
   if (!piece.expires_on) return "aucune date de fin de validité";
   const days = daysLeft(piece.expires_on);
   const when = dateFr(piece.expires_on);
   if (days === null) return `valable jusqu'au ${when}`;
   if (days < 0) return `expiré depuis le ${when}`;
+  // valable aujourd'hui, mais périmée le jour du dépôt : le dossier la comptera comme manquante
+  if (deadline && piece.expires_on < deadline) {
+    return `expire le ${when}, avant la date limite du ${dateFr(deadline)}`;
+  }
   if (days <= 30) return `expire le ${when} — dans ${days} j`;
   return `valable jusqu'au ${when}`;
 }
@@ -34,7 +38,7 @@ const FILTERS = [
 
 // Deux colonnes sur grand écran : à gauche (fixe) le dossier type et l'ajout,
 // à droite la liste, qui est ce qu'on consulte le plus. Empilé sur mobile.
-export default function Vault({ pieces, busy, onAdd, onRemove, onReplace, side }) {
+export default function Vault({ pieces, busy, onAdd, onRemove, onReplace, side, deadline }) {
   const [filter, setFilter] = useState("tous");
   const [form, setForm] = useState(EMPTY_ADD);
   const [replacing, setReplacing] = useState(null);
@@ -167,7 +171,15 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace, side }
           chantiers : il en faut deux pour rédiger la méthodologie.
         </Empty>
       ) : (
-        <ul className="list">
+        <>
+          {deadline && (
+            <p className="note">
+              Cette page compare les dates à aujourd'hui. Un dossier, lui, juge vos pièces à sa date
+              limite de dépôt : celles qui expirent avant le {dateFr(deadline)} y apparaîtront comme
+              manquantes.
+            </p>
+          )}
+          <ul className="list">
           {shown.length === 0 && <li className="vault-none">Aucun document dans ce filtre.</li>}
           {shown.map((piece) => {
             const status = pieceStatus(piece);
@@ -179,7 +191,7 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace, side }
                   <div>
                     <strong>{piece.label}</strong>
                     <span className="meta">
-                      {kindLabel(piece.kind)} · {validityText(piece)}
+                      {kindLabel(piece.kind)} · {validityText(piece, deadline)}
                     </span>
                   </div>
                 </div>
@@ -232,6 +244,7 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace, side }
             );
           })}
         </ul>
+        </>
       )}
       </Section>
     </div>

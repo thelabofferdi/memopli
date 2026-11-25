@@ -9,7 +9,7 @@ import Alerts from "../components/Alerts.jsx";
 import { Toaster, toast } from "../components/ui/toast.tsx";
 import { Badge } from "../components/Ui.jsx";
 import Vault from "../components/Vault.jsx";
-import { pieceStatus } from "../lib/format.js";
+import { nextDeadline, pieceStatus } from "../lib/format.js";
 import { navigate } from "../lib/router.js";
 import Account from "./Account.jsx";
 import Dossier from "./Dossier.jsx";
@@ -68,6 +68,8 @@ export default function Workspace({ path }) {
 
   const route = path.split("?")[0];
   const query = new URLSearchParams(path.split("?")[1] || "");
+  // date limite la plus proche : « Mes documents » explique la règle du dossier avec elle
+  const deadlineProche = nextDeadline(tenders);
 
   // ------------------------------------------------------------ amorçage
 
@@ -244,6 +246,7 @@ export default function Workspace({ path }) {
           onAdd={addPiece}
           onRemove={removePiece}
           onReplace={replacePiece}
+          deadline={deadlineProche}
           side={<DocChecklist pieces={pieces} />}
         />
       </>

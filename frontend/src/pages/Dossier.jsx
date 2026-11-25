@@ -22,6 +22,7 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
   const [reqs, setReqs] = useState([]);
   const [verdict, setVerdict] = useState(null);
   const [stale, setStale] = useState(false);
+  const [reading, setReading] = useState(null);
   const [drafts, setDrafts] = useState([]);
   const [openDraftId, setOpenDraftId] = useState("");
   const [piecesSeen, setPiecesSeen] = useState(pieces);
@@ -46,6 +47,8 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
         const [loadedReqs, loadedDrafts] = await Promise.all([api.listReq(tenderId), api.listDrafts(tenderId)]);
         if (!alive) return;
         setTender(loaded);
+        // la coupure du document vient du serveur : l'avertissement survit au rechargement
+        setReading(loaded.lecture || null);
         setReqs(loadedReqs);
         setDrafts(loadedDrafts);
         if (loadedDrafts.length) setOpenDraftId(loadedDrafts[0].id);
@@ -73,7 +76,8 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
 
   const extract = () =>
     run("lecture de l'appel d'offres", async () => {
-      await api.extractReq(tenderId);
+      const result = await api.extractReq(tenderId);
+      setReading(result.lecture || null);
       const [fresh, list] = await Promise.all([api.getTender(tenderId), api.listReq(tenderId)]);
       setTender(fresh);
       setReqs(list);
@@ -124,7 +128,7 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
   }
 
   const references = pieces.filter((p) => p.kind === "reference" || p.kind === "bilan").length;
-  const toTreat = pieces.filter((p) => pieceStatus(p) !== "valide").length;
+  const toTreat = pieces.filter((p) => pieceStatus(p, { deadline: tender.deadline }) !== "valide").length;
   const hasReqs = reqs.length > 0;
   const days = tender.deadline ? daysLeft(tender.deadline) : null;
 
@@ -184,7 +188,7 @@ export default function Dossier({ tenderId, orgId, pieces, busy, run }) {
 
       <Tender tender={tender} requirementsCount={reqs.length} busy={busy} onExtract={extract} step="1" />
 
-      {hasReqs && <Requirements reqs={reqs} busy={busy} stale={stale && Boolean(verdict)} onCorrect={correct} step="2" />}
+      {hasReqs && <Requirements reading={reading} reqs={reqs} busy={busy} stale={stale && Boolean(verdict)} onCorrect={correct} step="2" />}
 
       {hasReqs && (
         <Section

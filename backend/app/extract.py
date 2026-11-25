@@ -7,8 +7,7 @@ from __future__ import annotations
 
 import re
 
-MIN_CHARS = 1500  # en dessous, on considère que le PDF n'a pas de texte exploitable
-MAX_OCR_PAGES = 40
+MIN_CHARS = 500  # en dessous, le PDF n'a pas de texte exploitable : on tente l'OCR
 
 
 class PdfTooLong(Exception):
@@ -43,18 +42,12 @@ def pdf_text(path: str, max_pages: int | None = None, max_chars: int | None = No
     return "".join(chunks), total
 
 
-def ocr_text(path: str, max_pages: int = MAX_OCR_PAGES) -> str:
-    """Repli OCR. Nécessite pytesseract + pdf2image (non installés par défaut)."""
-    try:
-        from pdf2image import convert_from_path
-        import pytesseract
-    except ImportError:
-        return ""
-    pages = convert_from_path(path, dpi=200, first_page=1, last_page=max_pages)
-    out = []
-    for i, img in enumerate(pages, start=1):
-        out.append(f"\n--- PAGE {i} ---\n{pytesseract.image_to_string(img, lang='fra')}")
-    return "".join(out)
+def ocr_text(path: str, max_pages: int | None = None) -> str:
+    """Repli OCR local (poppler + tesseract) ; vide si les binaires ou la langue manquent."""
+    from . import ocr
+
+    texte, _langue = ocr.pdf_scanned_text(path, max_pages)
+    return texte
 
 
 def extract(path: str, max_pages: int | None = None, max_chars: int | None = None) -> tuple[str, int, bool]:
@@ -62,8 +55,9 @@ def extract(path: str, max_pages: int | None = None, max_chars: int | None = Non
     text, pages = pdf_text(path, max_pages=max_pages, max_chars=max_chars)
     if len(re.sub(r"--- PAGE \d+ ---", "", text).strip()) >= MIN_CHARS:
         return text, pages, False
-    fallback = ocr_text(path, min(pages, MAX_OCR_PAGES))
-    if fallback.strip():
+    fallback = ocr_text(path)
+    lu = lambda t: len(re.sub(r"--- PAGE \d+ ---", "", t).strip())  # noqa: E731
+    if lu(fallback) > lu(text):
         return fallback, pages, True
     return text, pages, False
 

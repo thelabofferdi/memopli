@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from datetime import date
 from typing import Literal
 
@@ -50,6 +51,7 @@ class RequirementIn(BaseModel):
     page: int | None = Field(default=None, ge=1, le=5000)
     excerpt: str | None = Field(default=None, max_length=2000)
     confidence: float | None = Field(default=None, ge=0, le=1)
+    to_check: bool = False  # décidé par le code : page absente ou extrait introuvable
 
 
 class RequirementPatch(BaseModel):
@@ -207,7 +209,33 @@ def _kind(value: object) -> str:
     return "piece"
 
 
-def _requirement(raw: object, page_count: int | None, stat: dict) -> RequirementIn | None:
+CONFIANCE_A_VERIFIER = 0.3  # plafond appliqué quand le code n'a pas pu confirmer la source
+
+
+def _squash(texte: str) -> str:
+    """Forme comparable : ligatures dépliées, sans accent ni casse ni ponctuation."""
+    texte = texte.lower().replace("œ", "oe").replace("æ", "ae")  # sans décomposition Unicode
+    texte = unicodedata.normalize("NFKD", texte)
+    texte = "".join(c for c in texte if unicodedata.category(c) != "Mn")
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", texte).split())
+
+
+def excerpt_in_page(excerpt: str, page_text: str) -> bool:
+    """L'extrait cité figure-t-il dans la page ? Les « … » du modèle séparent des fragments."""
+    page = _squash(page_text)
+    fragments = [f for f in (_squash(morceau) for morceau in re.split(r"\.{3}|…", excerpt)) if f]
+    if not fragments:
+        return False
+    longs = [f for f in fragments if len(f) >= 8]
+    if longs:
+        return all(f in page for f in longs)
+    # extrait court (« IFU », « RCCM ») : comparaison directe, mais sur des mots entiers
+    entoure = f" {page} "
+    return all(f" {f} " in entoure for f in fragments)
+
+
+def _requirement(raw: object, page_count: int | None, stat: dict,
+                 pages: dict[int, str] | None = None) -> RequirementIn | None:
     if isinstance(raw, str):  # le modèle rend parfois une simple liste de phrases
         raw = {"label": raw}
     if not isinstance(raw, dict):
@@ -222,36 +250,56 @@ def _requirement(raw: object, page_count: int | None, stat: dict) -> Requirement
         # page hors du document : on la perd plutôt que d'afficher une fausse référence
         stat["pages_hors_document"] += 1
         page = None
+    excerpt = _text(_pick(raw, _EXCERPT), 2000)
+    confidence = _float(_pick(raw, _CONFIDENCE))
+    to_check = False
     if page is None:
         stat["sans_page"] += 1
+        to_check = True
+    elif pages is not None:
+        # le code relit la page citée : un extrait absent de cette page n'est pas une source
+        if not excerpt:
+            stat["sans_extrait"] += 1
+            to_check = True
+        elif not excerpt_in_page(excerpt, pages.get(page, "")):
+            stat["extraits_introuvables"] += 1
+            to_check = True
+    if to_check:
+        confidence = min(confidence, CONFIANCE_A_VERIFIER) if confidence is not None else CONFIANCE_A_VERIFIER
+        stat["a_verifier"] += 1
     return RequirementIn(
         label=label,
         kind=_kind(_pick(raw, _KIND)),
         mandatory=_bool(_pick(raw, _MANDATORY)),
         weight=_float(_pick(raw, _WEIGHT)),
         page=page,
-        excerpt=_text(_pick(raw, _EXCERPT), 2000),
-        confidence=_float(_pick(raw, _CONFIDENCE)),
+        excerpt=excerpt,
+        confidence=confidence,
+        to_check=to_check,
     )
 
 
-def normalize_extract(obj: object, page_count: int | None = None) -> tuple[ExtractOut, dict]:
+def normalize_extract(obj: object, page_count: int | None = None,
+                      pages: dict[int, str] | None = None) -> tuple[ExtractOut, dict]:
     """Traduit la sortie réelle du modèle vers le schéma, et dit ce qu'elle a coûté.
 
     Les modèles renomment volontiers les clés (``name`` pour ``label``, ``pondération``
     pour ``weight``) ou écrivent une date en français. On accepte ces variantes, on
     convertit les dates en ISO et on écarte ce qui est inutilisable — sans jamais
-    fabriquer une valeur absente du document.
+    fabriquer une valeur absente du document. Quand `pages` (texte par page) est fourni, le
+    code vérifie que l'extrait cité figure dans la page citée ; sinon l'exigence est marquée
+    `to_check`.
     """
     if not isinstance(obj, dict):
         raise ValueError("la réponse du modèle n'est pas un objet JSON")
-    stat = {"ignorees": 0, "sans_page": 0, "pages_hors_document": 0}
+    stat = {"ignorees": 0, "sans_page": 0, "pages_hors_document": 0, "sans_extrait": 0,
+            "extraits_introuvables": 0, "a_verifier": 0}
     requirements = [
-        r for r in (_requirement(x, page_count, stat)
+        r for r in (_requirement(x, page_count, stat, pages)
                     for x in (obj.get("requirements") or [])) if r
     ]
     grid = [
-        r for r in (_requirement({**_kind_as_critere(x), "kind": "critere"}, page_count, stat)
+        r for r in (_requirement({**_kind_as_critere(x), "kind": "critere"}, page_count, stat, pages)
                     for x in (obj.get("grid") or [])) if r
     ]
     parsed = ExtractOut(

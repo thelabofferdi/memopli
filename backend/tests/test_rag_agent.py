@@ -237,3 +237,72 @@ def test_photo_refusee_si_ce_nest_pas_une_image(client, org):
 def test_etiquette_ocr_dit_quelle_langue_a_servi():
     assert ocr._etiquette("eng", "fra", False) == "eng (modèle fra absent)"
     assert ocr._etiquette("fra", "fra", True) == "fra"
+
+
+# ------------------------------------------- la source est vérifiée par le code
+
+PAGES = {
+    1: "Avis d'appel d'offres.",
+    3: "Le soumissionnaire fournit une attestation fiscale en cours de validité.",
+    4: "Critère 1 : prix, 40 points. Critère 2 : méthodologie, 60 points.",
+}
+
+
+def _brut(**ligne):
+    return {"requirements": [{"label": "Attestation fiscale", "kind": "piece", **ligne}]}
+
+
+def test_extrait_present_a_la_page_citee_est_fiable():
+    parsed, lecture = normalize_extract(
+        _brut(page=3, excerpt="Attestation fiscale en cours de validité"), 6, PAGES)
+    r = parsed.requirements[0]
+    assert r.to_check is False and r.confidence is None
+    assert lecture["a_verifier"] == 0
+
+
+def test_extrait_introuvable_a_la_page_citee_est_a_verifier():
+    parsed, lecture = normalize_extract(
+        _brut(page=4, excerpt="attestation fiscale en cours de validité"), 6, PAGES)
+    r = parsed.requirements[0]
+    assert r.to_check is True and r.page == 4  # la page n'est pas inventée, juste signalée
+    assert r.confidence == 0.3
+    assert lecture["extraits_introuvables"] == 1 and lecture["a_verifier"] == 1
+
+
+def test_extrait_absent_est_a_verifier():
+    parsed, lecture = normalize_extract(_brut(page=3), 6, PAGES)
+    assert parsed.requirements[0].to_check is True
+    assert lecture["sans_extrait"] == 1
+
+
+def test_exigence_sans_page_est_a_verifier_et_bride_la_confiance():
+    parsed, lecture = normalize_extract(_brut(excerpt="x", confidence=0.9), 6, PAGES)
+    r = parsed.requirements[0]
+    assert r.page is None and r.to_check is True and r.confidence == 0.3
+    assert lecture["sans_page"] == 1 and lecture["a_verifier"] == 1
+
+
+def test_comparaison_insensible_aux_accents_casse_et_ligatures():
+    pages = {2: "Les ŒUVRES  doivent être remises\nsous pli cacheté."}
+    parsed, _ = normalize_extract(
+        _brut(page=2, excerpt="les oeuvres doivent etre remises sous pli cachete"), 6, pages)
+    assert parsed.requirements[0].to_check is False
+
+
+def test_points_de_suspension_separent_des_fragments():
+    parsed, _ = normalize_extract(
+        _brut(page=4, excerpt="Critère 1 : prix, 40 points … méthodologie, 60 points"), 6, PAGES)
+    assert parsed.requirements[0].to_check is False
+
+
+def test_extrait_court_compare_directement():
+    pages = {2: "Identifiants : IFU 3202400001234, RCCM RB/LGV/24 B 1204."}
+    parsed, _ = normalize_extract(_brut(page=2, excerpt="IFU"), 6, pages)
+    assert parsed.requirements[0].to_check is False          # extrait exact, quoique court
+    parsed, _ = normalize_extract(_brut(page=2, excerpt="NIF"), 6, pages)
+    assert parsed.requirements[0].to_check is True           # absent de la page
+
+
+def test_sans_texte_de_pages_la_verification_est_sautee():
+    parsed, _ = normalize_extract(_brut(page=3, excerpt="n'importe quoi"), 6)
+    assert parsed.requirements[0].to_check is False

@@ -33,12 +33,13 @@ CREATE TABLE IF NOT EXISTS pieces (
 );
 CREATE TABLE IF NOT EXISTS tenders (
   id TEXT PRIMARY KEY, org_id TEXT NOT NULL, title TEXT, buyer TEXT, deadline TEXT,
-  file_path TEXT, text_path TEXT, page_count INTEGER, created_at TEXT NOT NULL
+  file_path TEXT, text_path TEXT, page_count INTEGER, source TEXT, created_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS requirements (
   id TEXT PRIMARY KEY, tender_id TEXT NOT NULL, label TEXT NOT NULL, kind TEXT NOT NULL,
   mandatory INTEGER NOT NULL DEFAULT 1, weight REAL, page INTEGER, excerpt TEXT,
-  confidence REAL, corrected INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+  confidence REAL, corrected INTEGER NOT NULL DEFAULT 0,
+  to_check INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS matches (
   id TEXT PRIMARY KEY, requirement_id TEXT NOT NULL, piece_id TEXT,
@@ -94,6 +95,8 @@ def _ensure_column(conn: sqlite3.Connection, table: str, column: str, ddl: str) 
 
 def _migrate(conn: sqlite3.Connection) -> None:
     _ensure_column(conn, "organizations", "user_id", "TEXT")
+    _ensure_column(conn, "tenders", "source", "TEXT")
+    _ensure_column(conn, "requirements", "to_check", "INTEGER NOT NULL DEFAULT 0")
 
 
 @contextmanager

@@ -24,7 +24,7 @@ from . import agent, ai, audit, auth, errors, extract, ingest, ocr, rag, ratelim
 from .config import check, describe, enforce, settings
 from .db import UPLOAD_DIR, connect, init_db, rows
 from .errors import abort
-from .ids import epoch, nid, today
+from .ids import epoch, nid, stamp
 from .middleware import BodyLimit, HttpGuard, setup_logging
 from .schemas import (ChatIn, DraftIn, LoginIn, OrgIn, OrgPatch, PIECE_KINDS,
                       RequirementPatch, SearchIn, SignupIn, dedupe, normalize_extract)
@@ -154,7 +154,7 @@ def create_org(payload: OrgIn, user: dict | None = Depends(auth.optional_user)):
             "INSERT INTO organizations(id,user_id,name,ifu,rccm,sector,headcount,created_at)"
             " VALUES (?,?,?,?,?,?,?,?)",
             (oid, user["id"] if user else None, payload.name, payload.ifu, payload.rccm,
-             payload.sector, payload.headcount, today()),
+             payload.sector, payload.headcount, stamp()),
         )
     return {"id": oid, **payload.model_dump()}
 
@@ -270,7 +270,7 @@ async def create_piece(
         conn.execute(
             "INSERT INTO pieces(id,org_id,kind,label,file_path,expires_on,verified,created_at)"
             " VALUES (?,?,?,?,?,?,0,?)",
-            (pid, org_id, kind, label, path, expires, today()),
+            (pid, org_id, kind, label, path, expires, stamp()),
         )
     document = None
     if path:
@@ -339,9 +339,10 @@ async def create_tender(
     text_path.write_text(text, encoding="utf-8")
     with connect() as conn:
         conn.execute(
-            "INSERT INTO tenders(id,org_id,title,buyer,deadline,file_path,text_path,page_count,created_at)"
-            " VALUES (?,?,?,?,?,?,?,?,?)",
-            (tid, org_id, None, None, None, str(path), str(text_path), pages, today()),
+            "INSERT INTO tenders(id,org_id,title,buyer,deadline,file_path,text_path,page_count,source,created_at)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (tid, org_id, None, None, None, str(path), str(text_path), pages,
+             "ocr" if used_ocr else "pdf", stamp()),
         )
     document = ingest.register(
         org_id=org_id, kind="dao", filename=file.filename, mime="application/pdf",
@@ -354,8 +355,11 @@ async def create_tender(
 def get_tender(tender_id: str, user: dict | None = Depends(auth.optional_user)):
     auth.assert_access(user, tender_id=tender_id)
     tender = _require_tender(tender_id)
+    lecture = _lecture_stockee(tender)
     tender.pop("text_path", None)
     tender.pop("file_path", None)
+    # la troncature est un fait du texte conservé : elle survit au rechargement de l'écran
+    tender["lecture"] = lecture
     return tender
 
 
@@ -366,6 +370,49 @@ Règles strictes :
 - distingue les pièces administratives (kind=piece) des critères de notation (kind=critere, avec weight si indiqué) ;
 - si la grille de notation est absente, renvoie grid=[] ;
 - réponds uniquement en JSON conforme au schéma demandé."""
+
+
+MAX_PROMPT_CHARS = 60_000
+
+
+def _fenetre_modele(text: str) -> tuple[str, bool, int | None]:
+    """Ce que le modèle lira : le texte coupé à une frontière de page, jamais au milieu.
+
+    Retourne (texte envoyé, tronqué ?, dernière page entièrement envoyée).
+    """
+    pages = extract.pages_of(text)
+    if len(text) <= MAX_PROMPT_CHARS:
+        return text, False, max(pages) if pages else None
+    envoye, derniere = "", None
+    for numero in sorted(pages):
+        morceau = f"\n--- PAGE {numero} ---\n{pages[numero]}"
+        if len(envoye) + len(morceau) > MAX_PROMPT_CHARS:
+            break
+        envoye += morceau
+        derniere = numero
+    return (envoye or text[:MAX_PROMPT_CHARS]), True, derniere
+
+
+def _lecture_stockee(tender: dict, text: str | None = None) -> dict:
+    """État de lecture du texte conservé : jusqu'où le modèle peut lire, et ce qui est coupé.
+
+    Recalculé depuis le fichier, sans appel IA : la réponse d'extraction et la relance de
+    l'écran donnent le même résultat, y compris la coupure à `MAX_PROMPT_CHARS`.
+    """
+    chemin = tender.get("text_path")
+    if text is None and chemin and Path(chemin).is_file():
+        text = Path(chemin).read_text(encoding="utf-8")
+    texte = text or ""
+    _envoye, coupe, derniere = _fenetre_modele(texte)
+    pages = extract.pages_of(texte)
+    total = tender.get("page_count")
+    derniere_presente = max(pages) if pages else None
+    return {
+        "source": tender.get("source") or "pdf",
+        "tronque": bool(coupe or (derniere_presente and total and derniere_presente < total)),
+        "derniere_page_lue": derniere,
+        "pages_total": total,
+    }
 
 
 @app.post("/api/tenders/{tender_id}/requirements")
@@ -384,9 +431,10 @@ def extract_requirements(
     if len(text) < 500:
         abort("texte_insuffisant", "le PDF ne contient pas de texte exploitable (scan ?)", 400)
 
+    envoye = _fenetre_modele(text)[0]
     user_prompt = (
         "Extrait du DAO (les pages sont balisées par '--- PAGE n ---') :\n\n"
-        + text[:60000]
+        + envoye
         + "\n\nRends un seul objet JSON, sans commentaire, exactement de cette forme :\n"
         '{"title": "objet du marché", "buyer": "acheteur", "deadline": "AAAA-MM-JJ",\n'
         ' "requirements": [{"label": "pièce exigée", "kind": "piece", "mandatory": true,\n'
@@ -398,7 +446,7 @@ def extract_requirements(
     )
     try:
         obj, meta = ai.chat_json(SYSTEM_EXTRACT, user_prompt, ai.MODEL_EXTRACT)
-        parsed, lecture = normalize_extract(obj, tender["page_count"])
+        parsed, lecture = normalize_extract(obj, tender["page_count"], extract.pages_of(text))
     except ai.AIError as exc:
         _ai_failure(exc, "extraction", tender_id, getattr(request.state, "request_id", None))
     except Exception as exc:  # schéma non conforme : le contenu du modèle reste au journal
@@ -409,6 +457,7 @@ def extract_requirements(
         abort("extraction_invalide", "la réponse du modèle n'a pas pu être exploitée", 502)
 
     items, doublons = dedupe([r for r in parsed.requirements + parsed.grid if r.label.strip()])
+    lecture.update(_lecture_stockee(tender, text))
     lecture["doublons"] = doublons
     created = []
     with connect() as conn:
@@ -425,10 +474,10 @@ def extract_requirements(
         for req in items:
             rid = nid("rq")
             conn.execute(
-                "INSERT INTO requirements(id,tender_id,label,kind,mandatory,weight,page,excerpt,confidence,corrected,created_at)"
-                " VALUES (?,?,?,?,?,?,?,?,?,0,?)",
+                "INSERT INTO requirements(id,tender_id,label,kind,mandatory,weight,page,excerpt,confidence,corrected,to_check,created_at)"
+                " VALUES (?,?,?,?,?,?,?,?,?,0,?,?)",
                 (rid, tender_id, req.label.strip(), req.kind, int(req.mandatory), req.weight,
-                 req.page, req.excerpt, req.confidence, today()),
+                 req.page, req.excerpt, req.confidence, int(req.to_check), stamp()),
             )
             created.append(rid)
     audit.log_ai_call(meta, task="extraction", tender_id=tender_id,
@@ -470,7 +519,7 @@ def patch_requirement(
     sets = ", ".join(f"{k}=?" for k in fields)
     with connect() as conn:
         cur = conn.execute(
-            f"UPDATE requirements SET {sets}, corrected=1 WHERE id=?",
+            f"UPDATE requirements SET {sets}, corrected=1, to_check=0 WHERE id=?",
             (*fields.values(), requirement_id),
         )
         if cur.rowcount == 0:
@@ -486,17 +535,6 @@ Tu ne décides jamais du statut (valide/perimé) : le logiciel s'en charge.
 Réponds en JSON : {"matches":[{"requirement_id":"...","piece_id":"...|null","reason":"..."}]}"""
 
 
-def compute_status(piece: dict | None) -> tuple[str, str]:
-    if piece is None:
-        return "manquant", "aucune pièce correspondante"
-    exp = piece.get("expires_on")
-    if not exp:
-        return "a_verifier", "date de validité non déclarée"
-    if exp < date.today().isoformat():
-        return "perime", f"expirée le {exp}"
-    return "valide", f"valable jusqu'au {exp}"
-
-
 @app.post("/api/tenders/{tender_id}/match")
 def match_requirements(
     tender_id: str,
@@ -508,7 +546,7 @@ def match_requirements(
     tender = _require_tender(tender_id)
     with connect() as conn:
         reqs = rows(conn.execute(
-            "SELECT id,label,kind FROM requirements WHERE tender_id=?", (tender_id,)))
+            "SELECT id,label,kind FROM requirements WHERE tender_id=? AND kind='piece'", (tender_id,)))
         pieces = rows(conn.execute(
             "SELECT id,label,kind,expires_on FROM pieces WHERE org_id=?", (tender["org_id"],)))
     if not reqs:
@@ -523,6 +561,8 @@ def match_requirements(
     # le modèle ne peut viser qu'une exigence de ce dossier et une pièce de cette entreprise
     valid_rids = {r["id"] for r in reqs}
     by_id = {p["id"]: p for p in pieces}
+    labels = {r["id"]: r["label"] for r in reqs}
+    refuses = 0
     pairs: dict[str, dict] = {}
     for pair in obj.get("matches", []) if isinstance(obj.get("matches"), list) else []:
         if not isinstance(pair, dict):
@@ -538,14 +578,23 @@ def match_requirements(
         )
         for rid, pair in pairs.items():
             piece = by_id.get(pair.get("piece_id") or "")
-            status, reason = compute_status(piece)
+            if piece and not state.types_compatibles(labels[rid], piece["kind"]):
+                log.warning(json.dumps({"rapprochement_refuse": rid, "piece": piece["id"],
+                                        "exigence": labels[rid][:80], "type_piece": piece["kind"]},
+                                       ensure_ascii=False))
+                refuses += 1
+                # la pièce existe mais ne répond pas à cette exigence : le dire à l'écran
+                status, reason = "manquant", f"pièce du mauvais type : {piece['label']}"
+                piece = None
+            else:
+                status, reason = state.compute_status(piece, tender["deadline"])
             conn.execute(
                 "INSERT INTO matches(id,requirement_id,piece_id,status,reason,created_at) VALUES (?,?,?,?,?,?)",
-                (nid("mt"), rid, piece["id"] if piece else None, status, reason, today()),
+                (nid("mt"), rid, piece["id"] if piece else None, status, reason, stamp()),
             )
     audit.log_ai_call(meta, task="rapprochement", tender_id=tender_id,
                       request_id=getattr(request.state, "request_id", None))
-    return {"matched": len(pairs), "meta": meta}
+    return {"matched": len(pairs), "refused": refuses, "meta": meta}
 
 
 @app.get("/api/tenders/{tender_id}/readiness")
@@ -612,7 +661,7 @@ def draft_section(
             "INSERT INTO drafts(id,tender_id,section,content,model,tokens_in,tokens_out,created_at)"
             " VALUES (?,?,?,?,?,?,?,?)",
             (did, tender_id, payload.section, content, meta["model"],
-             meta["tokens_in"], meta["tokens_out"], today()),
+             meta["tokens_in"], meta["tokens_out"], stamp()),
         )
     audit.log_ai_call(meta, task="redaction", tender_id=tender_id,
                       request_id=getattr(request.state, "request_id", None))

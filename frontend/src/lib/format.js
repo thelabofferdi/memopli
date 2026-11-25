@@ -1,5 +1,5 @@
 // Formatage et règles de lecture. Les statuts officiels sont calculés par le
-// serveur (app/main.py:compute_status) ; ce module ne fait que reproduire la
+// serveur (app/state.py:compute_status) ; ce module ne fait que reproduire la
 // même règle à l'identique pour les pièces du coffre, jamais pour deviner un
 // rapprochement.
 
@@ -27,11 +27,25 @@ export const isoToday = () => {
     .slice(0, 10);
 };
 
-/** Miroir exact de compute_status() côté serveur. */
-export function pieceStatus(piece, today = isoToday()) {
+/**
+ * Miroir de compute_status() côté serveur, à la date de référence près : sans dossier,
+ * on compare à aujourd'hui ; avec la date limite d'un DAO, on compare au plus tardif des
+ * deux, comme le verdict (« une pièce qui expire avant le dépôt est déjà perdue »).
+ */
+export function pieceStatus(piece, { today = isoToday(), deadline = null } = {}) {
   if (!piece) return "manquant";
   if (!piece.expires_on) return "a_verifier";
-  return piece.expires_on < today ? "perime" : "valide";
+  const reference = deadline && deadline > today ? deadline : today;
+  return piece.expires_on < reference ? "perime" : "valide";
+}
+
+/** Date limite la plus proche encore à venir parmi les dossiers (null s'il n'y en a pas). */
+export function nextDeadline(tenders, today = isoToday()) {
+  const dates = (tenders || [])
+    .map((tender) => tender.deadline)
+    .filter((iso) => iso && iso >= today)
+    .sort();
+  return dates[0] || null;
 }
 
 export function daysLeft(iso, today = isoToday()) {
