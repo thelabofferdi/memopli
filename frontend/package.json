@@ -9,12 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.5.0",
     "@tailwindcss/vite": "^4.3.5",
     "clsx": "^2.1.1",
+    "figma-squircle": "^1.1.0",
     "motion": "^12.43.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-use-measure": "^2.1.7",
+    "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.1",
     "tailwindcss": "^4.3.5"
   },

@@ -5,7 +5,9 @@ import { Mark, Wordmark } from "../components/Logo.jsx";
 import { Icon, PageHead, Ring } from "../components/Brand.jsx";
 import DocChecklist from "../components/DocChecklist.jsx";
 import Mascot from "../components/Mascot.jsx";
-import { Badge, Busy, ErrorBox } from "../components/Ui.jsx";
+import Alerts from "../components/Alerts.jsx";
+import { Toaster, toast } from "../components/ui/toast.tsx";
+import { Badge } from "../components/Ui.jsx";
 import Vault from "../components/Vault.jsx";
 import { pieceStatus } from "../format.js";
 import { navigate } from "../router.js";
@@ -39,6 +41,19 @@ function SearchPage({ org }) {
 
 const profileScore = (org) =>
   [org?.ifu, org?.rccm, org?.sector, org?.headcount].filter((v) => v !== null && v !== undefined && v !== "").length / 4;
+
+// messages de réussite, par action (mêmes libellés que run())
+const DONE = {
+  "ajout du document": "Document ajouté.",
+  "retrait du document": "Document retiré.",
+  "remplacement du document": "Document remplacé.",
+  "enregistrement de l'entreprise": "Entreprise enregistrée.",
+  "dépôt du dossier": "Dossier déposé.",
+  "lecture de l'appel d'offres": "Exigences relevées.",
+  "enregistrement de la correction": "Correction enregistrée.",
+  "vérification du dossier": "Vérification terminée.",
+  "rédaction de la méthodologie": "Méthodologie rédigée.",
+};
 
 export default function Workspace({ path }) {
   const [user, setUser] = useState(null);
@@ -95,14 +110,19 @@ export default function Workspace({ path }) {
 
   // ---------------------------------------------------------- utilitaires
 
+  // Chaque action affiche un toast (Rare UI) : en cours → réussi ou échec.
   const run = useCallback(async (label, fn) => {
     setBusy(label);
     setError(null);
+    const id = toast.loading(`${label.charAt(0).toUpperCase()}${label.slice(1)}…`);
     try {
       await fn();
+      toast.success(DONE[label] || "C'est fait.", { id, duration: 3000 });
       return true;
     } catch (e) {
-      setError(e instanceof api.ApiError ? e : { code: "erreur", message: String(e) });
+      const err = e instanceof api.ApiError ? e : { code: "erreur", message: String(e) };
+      toast.error(err.message || "Une erreur est survenue.", { id, duration: 6000 });
+      setError(err);
       return false;
     } finally {
       setBusy("");
@@ -273,10 +293,13 @@ export default function Workspace({ path }) {
   return (
     <div className={menu ? "ws menu-open" : "ws"}>
       <aside className="side" aria-label="Navigation principale">
-        <a className="side-brand" href="#/app">
-          <Mark size={30} />
-          <Wordmark />
-        </a>
+        <div className="side-top">
+          <a className="side-brand" href="#/app">
+            <Mark size={30} />
+            <Wordmark />
+          </a>
+          {org && <Alerts pieces={pieces} tenders={tenders} size={36} />}
+        </div>
 
         {org && (
           <div className="side-org" title={org.name}>
@@ -361,16 +384,18 @@ export default function Workspace({ path }) {
             <Mark size={28} />
             <Wordmark />
           </a>
+          {org && <Alerts pieces={pieces} tenders={tenders} size={40} align="right" />}
         </header>
         <button type="button" className="ws-scrim" aria-label="Fermer le menu" tabIndex={-1} onClick={() => setMenu(false)} />
 
         <main className="ws-content">
-          <ErrorBox error={error} onClose={() => setError(null)} />
           {page}
         </main>
       </div>
 
-      <Busy label={busy} />
+      <span className="rui">
+        <Toaster position="bottom-center" />
+      </span>
     </div>
   );
 }

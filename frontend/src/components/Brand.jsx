@@ -85,7 +85,7 @@ export function Ring({ value = 0, size = 72, stroke = 8, label }) {
   const c = 2 * Math.PI * r;
   const v = Math.max(0, Math.min(1, value));
   return (
-    <span className="ring" style={{ width: size, height: size }}>
+    <span className="mp-ring" style={{ width: size, height: size }}>
       <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--brand-soft)" strokeWidth={stroke} />
         <circle

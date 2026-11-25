@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { PIECE_KINDS, dateFr, daysLeft, kindLabel, pieceStatus, statusLabel } from "../format.js";
 import { Badge, Empty, FileDrop, Section } from "./Ui.jsx";
+import DeleteButton from "./ui/delete-button.tsx";
 
 const EMPTY_ADD = { kind: "attestation_fiscale", label: "", expires_on: "", file: null };
 
@@ -130,16 +131,9 @@ export default function Vault({ pieces, busy, onAdd, onRemove, onReplace }) {
                   >
                     {open ? "Annuler" : "Remplacer"}
                   </button>
-                  <button
-                    type="button"
-                    className="ghost small danger"
-                    disabled={Boolean(busy)}
-                    onClick={() => {
-                      if (window.confirm(`Retirer « ${piece.label} » de vos documents ?`)) onRemove(piece);
-                    }}
-                  >
-                    Retirer
-                  </button>
+                  <span className="rui" title={`Retirer « ${piece.label} »`}>
+                    <DeleteButton onConfirm={() => onRemove(piece)} />
+                  </span>
                 </div>
                 {open && (
                   <form className="form replace" onSubmit={submitReplace}>
