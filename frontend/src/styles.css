@@ -2756,3 +2756,8 @@ button.vf.on span { background: rgba(255, 255, 255, 0.16); color: #fff; }
   .vault-jump { display: inline-flex; margin-left: var(--s3); }
   .vault-side .doccheck-list { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 }
+/* barre latérale mobile : une seule cloche (celle de la barre du haut) */
+@media (max-width: 960px) {
+  .side .alerts { display: none; }
+}
+.alerts-pop { max-width: calc(100vw - 2 * var(--s3)); }
