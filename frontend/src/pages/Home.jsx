@@ -2,6 +2,7 @@ import React from "react";
 import { AppChip, Icon, PliSays, Ring, TINTS } from "../components/Brand.jsx";
 import Halftone from "../components/Halftone.jsx";
 import Mascot from "../components/Mascot.jsx";
+import AnimatedCounter from "../components/ui/animated-counter.tsx";
 import { Badge } from "../components/Ui.jsx";
 import { dateFr, daysLeft, deadlineLabel, kindLabel, pieceStatus } from "../format.js";
 import { navigate } from "../router.js";
@@ -172,16 +173,15 @@ export default function Home({ org, pieces, tenders, user }) {
           <span className="kpi-ico" style={{ "--tint": TINTS.dossier }}>
             <Icon name="folder" size={18} />
           </span>
-          <b>{tenders ? tenders.length : "–"}</b>
+          <b className="rui"><AnimatedCounter value={tenders ? tenders.length : 0} /></b>
           <span>dossier{tenders && tenders.length > 1 ? "s" : ""}</span>
         </li>
         <li>
           <span className="kpi-ico" style={{ "--tint": TINTS.documents }}>
             <Icon name="files" size={18} />
           </span>
-          <b>
-            {valid}
-            <small>/{pieces.length}</small>
+          <b className="rui">
+            <AnimatedCounter value={valid} suffix={<small>/{pieces.length}</small>} />
           </b>
           <span>documents valides</span>
         </li>
@@ -189,7 +189,7 @@ export default function Home({ org, pieces, tenders, user }) {
           <span className="kpi-ico" style={{ "--tint": TINTS.exigences }}>
             <Icon name="clock" size={18} />
           </span>
-          <b>{nextDeadline ? `${daysLeft(nextDeadline.deadline)} j` : "—"}</b>
+          <b className="rui">{nextDeadline ? <AnimatedCounter value={daysLeft(nextDeadline.deadline)} suffix={"\u00a0j"} /> : "—"}</b>
           <span>avant la prochaine date limite</span>
         </li>
       </ul>

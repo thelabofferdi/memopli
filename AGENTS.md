@@ -16,7 +16,12 @@ Capstone RodiumAi, phase 3 (Build the MVP). Le produit lit un dossier d'appel d'
 ## Stack
 
 - Backend : Python 3.12, FastAPI, SQLite (fichier `data/app.db`), `pypdf` pour le texte.
-- Frontend : React 18 + Vite, pas de framework CSS, styles en un seul fichier.
+- Frontend : React 18 + Vite. Styles maison dans `frontend/src/styles.css`.
+  Exception : les composants animés [Rare UI](https://rareui.com) (`frontend/src/components/ui/*.tsx`)
+  utilisent Tailwind v4 et Motion. Tailwind est chargé **sans preflight** (`src/rare.css`) et ne
+  scanne que `components/ui` ; envelopper chaque composant Rare UI dans un élément `.rui`.
+  Licence MIT + Commons Clause + Attribution : garder l'en-tête de copyright des fichiers et le
+  lien visible vers rareui.com (pied de page, compte, README).
 - IA : API RodiumAi (compatible OpenAI) via `httpx`, modèles définis dans `backend/app/ai.py`.
 - Déploiement : un VPS, `docker-compose` (api + caddy).
 

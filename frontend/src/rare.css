@@ -1,0 +1,40 @@
+/* Tailwind v4, limité aux composants RareUI (https://rareui.com).
+   Pas de « preflight » : la remise à zéro globale de Tailwind casserait
+   styles.css. Seuls le thème et les classes utilitaires sont chargés, et
+   uniquement pour les fichiers de src/components/ui. */
+@layer theme, base, utilities;
+@import "tailwindcss/theme.css" layer(theme) source(none);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source "./components/ui";
+
+/* MemoPli est clair : la variante dark: ne s'active que sous une classe .dark
+   (jamais posée), et non selon le réglage sombre du téléphone. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: #2b3ae0;
+  /* jetons shadcn attendus par certains composants, reliés à la charte MemoPli */
+  --color-background: #ffffff;
+  --color-foreground: #0b1020;
+  --color-border: #e5e3dc;
+  --color-muted: #efece4;
+  --color-muted-foreground: #5b6275;
+  --color-primary: #2b3ae0;
+  --color-primary-foreground: #ffffff;
+}
+
+/* Remise à zéro minimale, limitée aux composants Rare UI : sans elle, les
+   boutons et champs gardent l'aspect natif du navigateur. Placée dans la
+   couche base, elle cède toujours aux classes utilitaires. */
+@layer base {
+  .rui *, .rui *::before, .rui *::after { box-sizing: border-box; border: 0 solid; margin: 0; padding: 0; }
+  .rui button, .rui input, .rui textarea, .rui select {
+    font: inherit; color: inherit; background: transparent; border-radius: 0; letter-spacing: inherit;
+    -webkit-appearance: none; appearance: none;
+  }
+  .rui button { cursor: pointer; }
+  .rui input:focus, .rui button:focus { outline: none; }
+  .rui svg, .rui img { display: block; vertical-align: middle; }
+  .rui ul, .rui ol { list-style: none; }
+}

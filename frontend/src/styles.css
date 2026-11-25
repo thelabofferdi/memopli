@@ -378,7 +378,7 @@ h3 {
 .form-actions { display: flex; justify-content: flex-end; gap: var(--s2); }
 
 input, select, button { font: inherit; }
-input, select {
+:is(input, select):not(.rui *) {
   height: 44px;
   min-width: 0;
   padding: 0 var(--s3);
@@ -388,13 +388,13 @@ input, select {
   color: var(--ink);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-input::placeholder { color: #9a9fae; }
-input:hover, select:hover { border-color: #cfcbc0; }
-input:focus, select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+input:not(.rui *)::placeholder { color: #9a9fae; }
+:is(input, select):not(.rui *):hover { border-color: #cfcbc0; }
+:is(input, select):not(.rui *):focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
 input[aria-invalid] { border-color: var(--ko); }
 button:focus-visible, a:focus-visible, .stepper-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
-button {
+button:not(.rui *) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -409,8 +409,8 @@ button {
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-button:hover:not(:disabled) { background: var(--brand-deep); }
-button:disabled { opacity: 0.45; cursor: not-allowed; }
+button:not(.rui *):hover:not(:disabled) { background: var(--brand-deep); }
+button:not(.rui *):disabled { opacity: 0.45; cursor: not-allowed; }
 button.ghost, a.ghost { background: var(--paper); color: var(--ink); border-color: var(--line); text-decoration: none; }
 a.ghost { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 10px; font-weight: 600; }
 a.ghost.small { border-radius: var(--r1); }
@@ -925,7 +925,7 @@ button.chip-btn:hover:not(:disabled) { background: var(--paper); border-color: v
 .auth-card h1 { margin: 0; font: 800 32px/1.1 var(--font-display); letter-spacing: -0.035em; }
 .auth-sub { margin: var(--s2) 0 var(--s6); color: var(--muted); }
 .auth-form { display: grid; gap: var(--s4); }
-.auth-form input { width: 100%; height: 48px; }
+.auth-form input:not(.rui *) { width: 100%; height: 48px; }
 .pw { position: relative; display: block; }
 .pw input { padding-right: 88px; }
 button.pw-toggle {
@@ -980,7 +980,7 @@ elevations douces, pas d'ombres decorees. */
 .lp h3 { display: block; text-transform: none; letter-spacing: -0.02em; color: inherit; }
 .lp .link { color: var(--brand); text-underline-offset: 3px; }
 /* les boutons de l'app ont une hauteur par defaut : la landing la gere elle-meme */
-:where(.lp) button { height: auto; gap: 0; font-weight: inherit; }
+:where(.lp) button:not(.rui *) { height: auto; gap: 0; font-weight: inherit; }
 .lp .btn-submit:hover:not(:disabled) { background: #095c42; }
 
 .skip {
@@ -1412,7 +1412,7 @@ elevations douces, pas d'ombres decorees. */
 }
 .fig:hover { border-color: var(--ink); box-shadow: 6px 6px 0 var(--ink); transform: translate(-2px, -2px); }
 .fig-num { font: 800 56px/1 var(--font-display); letter-spacing: -0.045em; color: var(--ink); font-variant-numeric: tabular-nums; }
-.fig span { font-size: 15px; line-height: 1.5; }
+.fig > span { font-size: 15px; line-height: 1.5; }
 .fig small { margin-top: auto; padding-top: var(--s2); font-size: 12px; color: var(--muted); }
 
 /* --- pour qui */
@@ -1931,7 +1931,7 @@ statuts, comme partout. Tout est scope sous .v2. */
 }
 :where(.v2) section { border-top: none; padding: 0; }
 .v2 h1, .v2 h2, .v2 h3 { display: block; margin: 0; font-family: var(--font-display); color: inherit; text-transform: none; }
-:where(.v2) button { height: auto; gap: 0; font-weight: inherit; }
+:where(.v2) button:not(.rui *) { height: auto; gap: 0; font-weight: inherit; }
 .v2-mono { font-family: var(--v2-mono); }
 .v2-wrap { width: min(var(--v2-col), 100% - 2 * var(--s5)); margin-inline: auto; }
 .halftone { display: block; pointer-events: none; }
@@ -2226,9 +2226,9 @@ statuts, comme partout. Tout est scope sous .v2. */
 .v2-stats li { position: relative; display: grid; align-content: start; gap: var(--s2); min-height: 220px; padding: var(--s6); border-right: 1px solid var(--v2-line); overflow: hidden; }
 .v2-stats li:last-child { border-right: none; }
 .v2-stat-dots { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.7; }
-.v2-stats b, .v2-stats span, .v2-stats small { position: relative; }
+.v2-stats li > :is(b, span, small) { position: relative; }
 .v2-stats b { font: 800 52px/1 var(--font-display); letter-spacing: -0.045em; }
-.v2-stats span { max-width: 22ch; color: var(--v2-ink-2); }
+.v2-stats li > span { max-width: 22ch; color: var(--v2-ink-2); }
 .v2-stats small { color: var(--v2-muted); font: 12px var(--v2-mono); }
 
 /* pour qui */
@@ -2523,7 +2523,7 @@ button.btn-glass:hover:not(:disabled) { background: rgba(255, 255, 255, 0.14); }
 .kpi-ico { grid-row: span 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--r2); background: color-mix(in srgb, var(--tint) 12%, #fff); color: var(--tint); }
 .home-kpis b { font: 800 30px/1 var(--font-display); letter-spacing: -0.04em; }
 .home-kpis b small { font-size: 16px; color: var(--muted); }
-.home-kpis span:not(.kpi-ico) { color: var(--muted); font-size: 13px; }
+.home-kpis li > span:not(.kpi-ico) { color: var(--muted); font-size: 13px; }
 .home-kpis li.muted b { color: var(--muted); }
 
 .home-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s5); }
@@ -2679,3 +2679,14 @@ button.btn-glass:hover:not(:disabled) { background: rgba(255, 255, 255, 0.14); }
 @media (max-width: 960px) {
   .v2-hero { margin-top: var(--s3); padding-top: var(--s7); }
 }
+
+/* --- composants Rare UI (https://rareui.com) */
+.rui { font-family: var(--font-text); }
+.v2-faq-chat { padding: var(--s5); border: 1px solid var(--line); border-radius: var(--r3); background: #fff; }
+.v2-faq-chat [data-slot="faq"] { max-width: none; }
+.v2-faq-chat [data-slot="faq-answer"] span[aria-hidden] { background: var(--cream); }
+.v2-sections { display: none; }
+@media (max-width: 960px) { .v2-sections { display: block; } }
+.fig-num.rui, .v2-stats b.rui, .home-kpis b.rui { display: inline-flex; }
+.pw-rui { display: block; }
+.pw-rui [data-slot="password-input"] { width: 100%; max-width: none; }

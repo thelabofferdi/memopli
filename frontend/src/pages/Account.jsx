@@ -32,6 +32,10 @@ export default function Account({ user, org, onSignOut }) {
         </p>
       </Section>
 
+      <p className="note credits">
+        Composants animés : <a href="https://rareui.com" target="_blank" rel="noreferrer">Rare UI</a> (licence MIT + Commons Clause).
+      </p>
+
       <Section id="session" title="Session">
         <div className="cta-row">
           <button type="button" className="ghost" onClick={onSignOut}>

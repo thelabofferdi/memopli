@@ -3,6 +3,8 @@ import Halftone from "./components/Halftone.jsx";
 import { Mark, Wordmark } from "./components/Logo.jsx";
 import Mascot from "./components/Mascot.jsx";
 import { AppChip, Icon, PliSays } from "./components/Brand.jsx";
+import Faq from "./components/ui/faq.tsx";
+import ScrollProgress from "./components/ui/scroll-progress.tsx";
 import { CONTACT_EMAIL, CountUp, EQUIV, Term, VerdictToggle, useReveal } from "./Landing.jsx";
 
 // Landing v2 — la structure de « mesa » (LN, licence MIT) fondue dans
@@ -762,16 +764,13 @@ export default function LandingV2() {
                 , ou posez-moi la question dans votre dossier.
               </PliSays>
             </div>
-            <div className="v2-acc" data-reveal>
-              {FAQ.map((f, i) => (
-                <details key={f.q} open={i === 0}>
-                  <summary>
-                    {f.q}
-                    <span aria-hidden="true" />
-                  </summary>
-                  <p>{f.a}</p>
-                </details>
-              ))}
+            <div className="v2-faq-chat rui" data-reveal>
+              <Faq
+                items={FAQ.map((f, i) => ({ id: `q${i}`, question: f.q, answer: f.a }))}
+                defaultValue="q0"
+                accent="#2b3ae0"
+                avatar={<Mascot size={30} animated={false} />}
+              />
             </div>
           </div>
         </section>
@@ -828,7 +827,7 @@ export default function LandingV2() {
         </div>
         <div className="v2-wrap v2-foot-bottom">
           <span>© {new Date().getFullYear()} MemoPli. Chiffres : ADPME Bénin ; ARMP, novembre 2026.</span>
-          <span>Mise en page inspirée de « mesa » par LN, licence MIT.</span>
+          <span>Mise en page inspirée de « mesa » par LN (MIT) · composants animés <a href="https://rareui.com" target="_blank" rel="noreferrer">Rare UI</a>.</span>
         </div>
         <div className="v2-giant-wrap">
           <Halftone colors={DOTS.cream} cell={6} shape="text" text="memopli" speed={0.4} className="v2-giant" />
@@ -837,6 +836,11 @@ export default function LandingV2() {
           </span>
         </div>
       </footer>
+
+      {/* navigation de sections flottante, mobile uniquement (Rare UI) */}
+      <div className="rui v2-sections">
+        <ScrollProgress sections={NAV.map(([id, label]) => ({ id, label }))} />
+      </div>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import * as api from "../api.js";
 import { Mark, Wordmark } from "../components/Logo.jsx";
 import Mascot from "../components/Mascot.jsx";
+import PasswordInput from "../components/ui/password-input.tsx";
 import { errorText } from "../format.js";
 import { navigate } from "../router.js";
 
@@ -20,7 +21,6 @@ function nextFrom(path) {
 export default function Auth({ mode, path }) {
   const signup = mode === "signup";
   const [form, setForm] = useState({ email: "", password: "", org_name: "" });
-  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -117,17 +117,14 @@ export default function Auth({ mode, path }) {
             </label>
             <label className="field">
               <span>Mot de passe</span>
-              <span className="pw">
-                <input
-                  type={show ? "text" : "password"}
+              <span className="pw-rui rui">
+                <PasswordInput
                   value={form.password}
-                  onChange={set("password")}
+                  onChange={(v) => setForm({ ...form, password: v })}
                   placeholder={signup ? "8 caractères minimum" : "Votre mot de passe"}
                   autoComplete={signup ? "new-password" : "current-password"}
+                  strength={signup}
                 />
-                <button type="button" className="pw-toggle" onClick={() => setShow((v) => !v)}>
-                  {show ? "Masquer" : "Afficher"}
-                </button>
               </span>
               {signup && form.password.length > 0 && form.password.length < 8 && (
                 <em className="field-hint">Encore {8 - form.password.length} caractère{8 - form.password.length > 1 ? "s" : ""}.</em>

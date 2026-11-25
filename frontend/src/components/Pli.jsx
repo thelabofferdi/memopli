@@ -2,6 +2,21 @@ import React, { useEffect, useRef, useState } from "react";
 import * as api from "../api.js";
 import { errorText } from "../format.js";
 import Mascot from "./Mascot.jsx";
+import AiStatus from "./ui/ai-status.tsx";
+
+// Indicateur Rare UI : Pli cherche, lit, puis rédige pendant l'attente.
+function Thinking() {
+  const [state, setState] = React.useState("researching");
+  React.useEffect(() => {
+    const a = setTimeout(() => setState("analyzing"), 2500);
+    const b = setTimeout(() => setState("writing"), 6000);
+    return () => {
+      clearTimeout(a);
+      clearTimeout(b);
+    };
+  }, []);
+  return <AiStatus state={state} timer />;
+}
 
 // « Demander à Pli » : l'assistant du dossier. Il ne lit que le dossier d'appel
 // d'offres (règle 4 : vos documents ne partent jamais au modèle) et cite la page
@@ -196,12 +211,8 @@ export default function Pli({ orgId, tenderId, open, onClose }) {
           )}
 
           {thinking && (
-            <div className="msg msg-pli">
-              <div className="msg-body typing" aria-label="Pli rédige sa réponse">
-                <i />
-                <i />
-                <i />
-              </div>
+            <div className="msg msg-pli rui pli-status">
+              <Thinking />
             </div>
           )}
 

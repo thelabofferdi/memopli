@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Mark, Wordmark } from "./components/Logo.jsx";
 import Mascot from "./components/Mascot.jsx";
+import AnimatedCounter from "./components/ui/animated-counter.tsx";
 
 // Page publique, destinée aux clients. Elle ne parle que de leur problème :
 // pas de modèle, pas de coût d'API, pas de jargon. Chaque chiffre a sa source
@@ -254,30 +255,25 @@ export function useReveal() {
 const fmt = (n, decimals = 0) =>
   n.toLocaleString("fr-FR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 
+// Compteur à roulettes (Rare UI · AnimatedCounter) : part de 0 et roule
+// jusqu'à la valeur quand le chiffre entre dans l'écran.
 export function CountUp({ to, decimals = 0, prefix = "", suffix = "" }) {
   const [ref, inView] = useInView({ threshold: 0.6 });
   const [value, setValue] = useState(reduceMotion() ? to : 0);
-  const done = useRef(false);
-
   useEffect(() => {
-    if (!inView || done.current || reduceMotion()) return undefined;
-    done.current = true;
-    let raf;
-    const start = performance.now();
-    const tick = (now) => {
-      const t = Math.min(1, (now - start) / 1400);
-      setValue(to * (1 - Math.pow(1 - t, 3)));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    if (inView) setValue(to);
   }, [inView, to]);
-
   return (
-    <b ref={ref} className="fig-num">
-      {prefix}
-      {fmt(decimals ? value : Math.round(value), decimals)}
-      {suffix}
+    <b ref={ref} className="fig-num rui">
+      <AnimatedCounter
+        value={value}
+        decimals={decimals}
+        duration={1.2}
+        separator={"\u202f"}
+        decimalSeparator=","
+        prefix={prefix ? prefix.replace(/ /g, "\u00a0") : undefined}
+        suffix={suffix ? suffix.replace(/ /g, "\u00a0") : undefined}
+      />
     </b>
   );
 }

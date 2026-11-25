@@ -68,3 +68,9 @@ Architecture point par point : `docs/11-architecture-backend.md`.
 | `docs/09-identite.md` | nom, signe, couleurs, typographie |
 | `docs/10-securite.md` | état des lieux sécurité et correctifs |
 | `docs/11-architecture-backend.md` | canevas du back-end : chaîne d'une requête, décisions par fonctionnalité |
+
+## Crédits
+
+- Composants animés : [Rare UI](https://rareui.com) par Swami Malode, licence MIT + Commons Clause + Attribution (`frontend/src/components/ui/`).
+- Mise en page de la page publique inspirée de « mesa » par LN ([landing-pages](https://github.com/ln-dev7/landing-pages)), licence MIT.
+- Polices Bricolage Grotesque, Geist et DM Mono : SIL OFL 1.1 (`frontend/public/fonts/`).
