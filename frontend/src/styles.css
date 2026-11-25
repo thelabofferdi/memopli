@@ -2014,8 +2014,8 @@ statuts, comme partout. Tout est scope sous .v2. */
   gap: var(--s6);
   width: min(1200px, 100% - 2 * var(--s4));
   min-height: 680px;
-  margin: calc(-1 * var(--s7)) auto 0;
-  padding: calc(var(--s9) + var(--s6)) var(--s8) 0;
+  margin: var(--s4) auto 0;
+  padding: var(--s8) var(--s8) 0;
   border-radius: var(--r4);
   background: radial-gradient(120% 90% at 80% 100%, #1b1f4a 0%, var(--v2-night) 60%);
   color: #fff;
@@ -2652,4 +2652,30 @@ button.btn-glass:hover:not(:disabled) { background: rgba(255, 255, 255, 0.14); }
   .ph h1, .home-hero h1 { font-size: 26px; }
   .start-head { flex-direction: column; align-items: flex-start; gap: var(--s3); }
   .doccheck-head { flex-direction: column; align-items: flex-start; gap: var(--s3); }
+}
+
+/* --- retours utilisateurs (mobile, Safari iOS) */
+/* Safari peut peindre un canvas masqué au-dessus de ses voisins : on fixe l'ordre. */
+.v2 .halftone { z-index: 0; }
+.v2 .halftone.v2-hero-dots { z-index: -1; }
+.v2-hero-in, .v2-hero-board { position: relative; z-index: 1; }
+.v2-tl-visual > :not(.halftone),
+.v2-stats li > :not(.halftone),
+.v2-who-art > :not(.halftone),
+.v2-chat > :not(.halftone),
+.v2-band > :not(.halftone),
+.v2-brandband > :not(.halftone) { position: relative; z-index: 1; }
+.v2-tl-visual > .v2-time, .v2-tl-visual > .v2-tl-card, .v2-tl-visual > .v2-tl-avatars,
+.v2-tl-visual > .v2-tl-verdict, .v2-tl-visual > .v2-tl-draft, .v2-tl-visual > .v2-tl-pli,
+.v2-tl-visual > .v2-tl-mascot { position: absolute; }
+.v2-tl-avatars { right: var(--s3); }
+.v2-tl-avatars span { background: #fff; }
+.v2-tl-verdict { right: auto; white-space: nowrap; }
+
+/* onglets « Pour qui » : libellé puis sous-titre, alignés à gauche */
+.v2 .v2-who-tabs button { display: block; height: auto; text-align: left; }
+.v2 .v2-who-tabs strong { margin-bottom: 2px; }
+
+@media (max-width: 960px) {
+  .v2-hero { margin-top: var(--s3); padding-top: var(--s7); }
 }
